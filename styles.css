@@ -187,7 +187,7 @@ section { position:relative; z-index:2; padding:8rem 5%; }
 .svc-list { list-style:none; display:flex; flex-direction:column; gap:.5rem; }
 .svc-list li { font-size:.75rem; color:var(--text); display:flex; align-items:flex-start; gap:.75rem; text-transform:none; }
 .svc-list li::before { content:'//'; color:var(--brand-purple); font-weight:700; }
-.pop-badge { position:absolute; top:-12px; left:2rem; background:var(--lime); color:#000; font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; padding:.3rem 1rem; border:1px solid #fff; }
+.pop-badge { position:absolute; top:0; left:1.5rem; background:var(--lime); color:#000; font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; padding:.3rem 1rem; border:1px solid #fff; border-top:none; border-bottom-left-radius:4px; border-bottom-right-radius:4px; z-index:5; }
 
 /* ── Process ── */
 .proc-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem; position:relative; }
