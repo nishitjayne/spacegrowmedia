@@ -25,6 +25,11 @@ desktop.ini
 *.swp
 *.swo
 
+# AI Assistants
+.claude/
+.cursor/
+.gemini/
+
 # Logs
 *.log
 npm-debug.log*
