@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SpaceGrow Media — Digital Growth Partner</title>
+<meta name="description" content="SpaceGrow Media is a digital growth partner and social media marketing agency making your brand impossible to scroll past. We specialize in Meta Ads, Website Development, App Development, and Content Creation.">
+<meta name="keywords" content="Social Media Marketing Agency, Digital Marketing Agency, Meta Ads Agency, Website Development Company, App Development Company, Content Creation Agency, Reels Marketing Agency, Brand Growth Agency, Social Media Management, AI Agent Development, Performance Marketing">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.spacegrowmedia.com/">
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="SpaceGrow Media — Digital Growth Partner">
+<meta property="og:description" content="Strategy-led content, reels, and consistent posting. We make your brand impossible to scroll past.">
+<meta property="og:url" content="https://www.spacegrowmedia.com/">
+<meta property="og:site_name" content="SpaceGrow Media">
+<meta property="og:image" content="https://www.spacegrowmedia.com/og-image.jpg">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SpaceGrow Media — Digital Growth Partner">
+<meta name="twitter:description" content="Strategy-led content, reels, and consistent posting. We make your brand impossible to scroll past.">
+<meta name="twitter:image" content="https://www.spacegrowmedia.com/og-image.jpg">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Stylesheet -->
+<link rel="stylesheet" href="/styles.css">
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "SpaceGrow Media",
+  "description": "Digital growth partner and social media marketing agency specializing in Meta Ads, Website Development, App Development, and Content Creation.",
+  "url": "https://www.spacegrowmedia.com",
+  "telephone": "+919987272788",
+  "email": "info@spacegrowmedia.com",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Mumbai",
+    "addressCountry": "IN"
+  },
+  "sameAs": [
+    "https://www.instagram.com/spacegrowmedia",
+    "https://www.linkedin.com/company/spacegrow-media/",
+    "https://www.facebook.com/profile.php?id=61578390723718"
+  ]
+}
+</script>
+</head>
+<body>
+
+<!-- No-JS Fallback -->
+<noscript>
+  <div style="background:#030305;color:#00e5ff;text-align:center;padding:3rem 2rem;font-family:monospace;min-height:100vh;display:flex;align-items:center;justify-content:center;">
+    <p>SpaceGrow Media requires JavaScript to run. Please enable JavaScript in your browser settings and reload the page.</p>
+  </div>
+</noscript>
+
+<!-- CURSOR -->
+<div id="cur"><div id="cd"></div><div id="cr"></div></div>
+
+<!-- SPACE CANVAS -->
+<canvas id="space-canvas"></canvas>
+
+<!-- ═══════════════════ INTRO ═══════════════════ -->
+<div id="intro">
+  <canvas id="intro-canvas"></canvas>
+  <div id="logo-anim-scene">
+    <canvas id="burst-canvas" width="420" height="420" style="position:absolute;inset:0;pointer-events:none;width:100%;height:100%;"></canvas>
+    <svg id="logo-svg" viewBox="0 0 420 420" style="overflow:visible;width:100%;height:100%;">
+      <defs>
+        <linearGradient id="sGrad" x1="0" y1="1" x2="1" y2="0" gradientUnits="objectBoundingBox">
+          <stop offset="0%"   stop-color="#00e5ff" />
+          <stop offset="45%"  stop-color="#1a6bff" />
+          <stop offset="100%" stop-color="#a020f0" />
+        </linearGradient>
+        <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stop-color="#00c8ff" />
+          <stop offset="100%" stop-color="#6020d0" />
+        </linearGradient>
+        <filter id="trailGlow" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="rktGlow" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <circle id="logo-ring" cx="190" cy="210" r="135"
+        fill="none" stroke="url(#ringGrad)" stroke-width="2.5"
+        stroke-dasharray="70 35 390 40 314"
+        stroke-dashoffset="849"
+        transform="rotate(-90 190 210)" opacity="0.8" />
+
+      <path id="s-path-guide"
+        d="M 108,318 L 248,222 L 152,188 L 278,92"
+        fill="none" stroke="none" />
+
+      <path id="s-trail"
+        d="M 108,318 L 248,222 L 152,188 L 278,92"
+        fill="none" stroke="url(#sGrad)" stroke-width="44"
+        stroke-linecap="butt" stroke-linejoin="miter"
+        filter="url(#trailGlow)"
+        stroke-dasharray="1000" stroke-dashoffset="1000" />
+
+      <g id="logo-rocket" opacity="0" filter="url(#rktGlow)">
+        <ellipse cx="0" cy="-5" rx="7" ry="14" fill="#8020d0" />
+        <polygon points="0,-20 -6,-7 6,-7" fill="#c060ff" />
+        <polygon points="-7,5 -16,16 -3,10" fill="#6010a0" />
+        <polygon points="7,5 16,16 3,10"   fill="#6010a0" />
+        <ellipse cx="0" cy="13" rx="4" ry="9" fill="#00e5ff" opacity="0.95" />
+        <ellipse cx="0" cy="14" rx="2" ry="5" fill="#fff" opacity="0.8" />
+      </g>
+    </svg>
+  </div>
+  <div id="logo-reveal">
+    <div class="lr-name">Space<em>Grow</em> Media</div>
+    <div class="lr-tag">Social Media Management · Mumbai</div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MAIN SITE ═══════════════════ -->
+<div id="site">
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#hero" class="nav-logo">
+    <span class="logo-top">Space<em>Grow</em></span>
+    <span class="logo-bottom"><span>M</span><span>E</span><span>D</span><span>I</span><span>A</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#portfolio">Our Work</a></li>
+    <li><a href="#case-studies">Case Studies</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="https://wa.me/919987272788?text=Hi%20SpaceGrow!%20I%20want%20a%20free%20social%20media%20audit." class="nav-cta" target="_blank">Get Free Audit</a>
+  <div class="burger" id="burger"><span></span><span></span><span></span></div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mob-menu" id="mob-menu">
+  <div class="close-mob" id="close-mob">✕</div>
+  <a href="#about" class="ml">About</a>
+  <a href="#services" class="ml">Services</a>
+  <a href="#portfolio" class="ml">Our Work</a>
+  <a href="#case-studies" class="ml">Case Studies</a>
+  <a href="#faq" class="ml">FAQ</a>
+  <a href="#contact" class="ml">Contact</a>
+  <a href="https://wa.me/919987272788" class="btn-lime" target="_blank">Get Free Audit</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-orb h-orb1"></div>
+  <div class="hero-orb h-orb2"></div>
+  <div class="hero-eyebrow fade-up"><div class="eyebrow-dot"></div>Digital Growth Partner · Social Media Agency · Technology Solutions</div>
+  <h1 class="hero-h1 fade-up">We make your brand<br><em>impossible</em> to<br><span class="outline">scroll past.</span></h1>
+  <p class="hero-sub fade-up">Social Media Management · Reels · Creative Design · Meta Ads · Website Development</p>
+  <div class="hero-btns fade-up">
+    <a href="https://wa.me/919987272788?text=Hi%20SpaceGrow!%20I%20want%20a%20free%20social%20media%20audit." class="btn-lime" target="_blank">Get Your Free Audit →</a>
+    <a href="#services" class="btn-ghost">Explore Services</a>
+  </div>
+  <div class="hero-stats fade-up">
+    <div><div class="stat-n">5<em>+</em></div><div class="stat-l">Brands Managed</div></div>
+    <div><div class="stat-n">100<em>%</em></div><div class="stat-l">Personal Attention</div></div>
+    <div><div class="stat-n">24<em>h</em></div><div class="stat-l">Reply Guarantee</div></div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div id="ticker">
+  <div class="ticker-track">
+    <span class="t-item">Social Media Management</span><span class="t-item">✦</span><span class="t-item">Website Development</span><span class="t-item">✦</span><span class="t-item">Content Strategy</span><span class="t-item">✦</span><span class="t-item">Meta Ads</span><span class="t-item">✦</span><span class="t-item">App Development</span><span class="t-item">✦</span><span class="t-item">Graphic Design</span><span class="t-item">✦</span><span class="t-item">Monthly Reporting</span><span class="t-item">✦</span><span class="t-item">Brand Creatives</span><span class="t-item">✦</span><span class="t-item">Digital Growth</span><span class="t-item">✦</span>
+    <span class="t-item">Social Media Management</span><span class="t-item">✦</span><span class="t-item">Website Development</span><span class="t-item">✦</span><span class="t-item">Content Strategy</span><span class="t-item">✦</span><span class="t-item">Meta Ads</span><span class="t-item">✦</span><span class="t-item">App Development</span><span class="t-item">✦</span><span class="t-item">Graphic Design</span><span class="t-item">✦</span><span class="t-item">Monthly Reporting</span><span class="t-item">✦</span><span class="t-item">Brand Creatives</span><span class="t-item">✦</span><span class="t-item">Digital Growth</span><span class="t-item">✦</span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about"><div id="about-wrap">
+  <div class="fade-up">
+    <div class="s-label">About</div>
+    <h2 class="s-h2">Built for brands that need<br><em>trust-first content.</em></h2>
+    <div class="about-body">
+      <p>SpaceGrow Media is a digital growth partner and creative agency helping brands build authority, trust, and consistency across all platforms.</p>
+      <p>We don't do generic content. Every strategy, reel, and platform is built around your audience's psychology and your brand's specific goals. Strategy comes first. Design follows. Lead generation is the measure.</p>
+      <p>When you work with SpaceGrow Media, you get direct communication, full asset ownership, clean approval workflows, and a team that treats your brand's online presence like their own.</p>
+    </div>
+  </div>
+  <div class="founder-card fade-up">
+    <img src="/founder.jpeg" alt="Yash - Founder of SpaceGrow Media" class="founder-photo" loading="lazy">
+    <div class="founder-nm">Founder & Creative Director</div>
+    <p style="font-size:0.85rem;color:var(--muted);font-style:italic;margin-bottom:1.2rem;line-height:1.5;margin-top:1.5rem;">"I work with every client personally — from strategy and content planning to reporting. When you message SpaceGrow Media, you talk directly to me. No handoffs. No confusion."</p>
+    <div class="tags-wrap">
+      <span class="n-tag">✨ Authority</span>
+      <span class="n-tag">🤝 Trust</span>
+      <span class="n-tag">🎯 Consistency</span>
+      <span class="n-tag">📈 Lead Generation</span>
+    </div>
+  </div>
+</div></section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="s-label fade-up">Services</div>
+  <h2 class="s-h2 fade-up">Core services that<br>grow your brand.</h2>
+  <p class="s-sub fade-up">Built for consistent content, powerful online presence, and digital scaling.</p>
+  <div class="svc-grid">
+    <div class="svc-card fade-up"><div class="svc-num">01</div><span class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg></span><div class="svc-nm">Social Media Management</div><p class="svc-desc">Your full content system — planned, created, approved, and posted. Built on research and data.</p><ul class="svc-list"><li>Content Strategy</li><li>Market Positioning</li><li>Audience Research</li><li>Competitor Analysis</li><li>Creative Direction</li><li>Growth Recommendations</li></ul></div>
+    <div class="svc-card fade-up"><div class="svc-num">02</div><span class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg></span><div class="svc-nm">Reels & Video Editing</div><p class="svc-desc">Raw footage turned into scroll-stopping reels. Hook-first editing with strong storytelling.</p><ul class="svc-list"><li>Hook creation</li><li>Retention editing</li><li>Storytelling</li><li>Conversion-focused content</li></ul></div>
+    <div class="svc-card fade-up"><div class="svc-num">03</div><span class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.24-.26-.39-.62-.39-1.01 0-.83.67-1.5 1.5-1.5H16c3.31 0 6-2.69 6-6 0-5.52-4.48-9.98-10-9.98z"/><circle cx="7.5" cy="11.5" r="1.5"/><circle cx="10.5" cy="7.5" r="1.5"/><circle cx="14.5" cy="7.5" r="1.5"/><circle cx="17.5" cy="11.5" r="1.5"/></svg></span><div class="svc-nm">Graphic Design</div><p class="svc-desc">Posts, carousels, and creatives that look premium and consistent — built around your brand.</p><ul class="svc-list"><li>Brand Visual Identity</li><li>Carousels</li><li>Social Assets</li><li>Campaign Creatives</li></ul></div>
+    <div class="svc-card fade-up"><div class="svc-num">04</div><span class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span><div class="svc-nm">Meta Ads</div><p class="svc-desc">Advanced paid campaigns built to bring inquiries and sales directly to your business.</p><ul class="svc-list"><li>Meta Ads Strategy</li><li>Campaign Setup</li><li>Audience Research</li><li>Creative Testing</li><li>Performance Tracking</li><li>Scaling Framework</li></ul></div>
+    <div class="svc-card fade-up pop"><div class="pop-badge">Special Focus</div><div class="svc-num">05</div><span class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M10 17.5H14M8.5 21h7"/><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M12 17v4"/></svg></span><div class="svc-nm">Website Development</div><p class="svc-desc">From planning and design to hosting and launch, everything is handled for you.</p><ul class="svc-list"><li>Landing & Business Pages</li><li>Domain & Hosting Setup</li><li>Mobile Responsive Design</li><li>SEO Foundations</li><li>Performance Optimization</li></ul><a href="https://wa.me/919987272788" class="btn-lime" style="margin-top:1.5rem;" target="_blank">Talk To An Expert</a></div>
+    <div class="svc-card fade-up"><div class="svc-num">06</div><span class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></span><div class="svc-nm">App Development</div><p class="svc-desc">Custom mobile applications built for seamless user experience and business growth.</p><ul class="svc-list"><li>Android & iOS Apps</li><li>Business Applications</li><li>Custom Solutions</li><li>UI/UX Design</li><li>Backend Development</li></ul></div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="s-label fade-up">How We Work</div>
+  <h2 class="s-h2 fade-up">A professional agency workflow.<br>No confusion.</h2>
+  <div class="proc-grid">
+    <div class="proc-card fade-up"><div class="proc-n">01</div><div class="proc-nm">Discovery & Brand Analysis</div><ul class="svc-list"><li>Business Understanding</li><li>Market Research</li><li>Competitor Analysis</li><li>Audience Mapping</li><li>Growth Opportunity Analysis</li></ul></div>
+    <div class="proc-card fade-up"><div class="proc-n">02</div><div class="proc-nm">Strategy Development</div><ul class="svc-list"><li>Content Pillars</li><li>Brand Positioning</li><li>Messaging Framework</li><li>Growth Roadmap</li></ul></div>
+    <div class="proc-card fade-up"><div class="proc-n">03</div><div class="proc-nm">Content Production</div><ul class="svc-list"><li>Script Creation</li><li>Creative Planning</li><li>Design Production</li><li>Video Editing</li></ul></div>
+    <div class="proc-card fade-up"><div class="proc-n">04</div><div class="proc-nm">Review & Refinement</div><ul class="svc-list"><li>Internal QA</li><li>Client Feedback</li><li>Final Approval</li></ul></div>
+    <div class="proc-card fade-up"><div class="proc-n">05</div><div class="proc-nm">Publishing & Distribution</div><ul class="svc-list"><li>Platform Optimization</li><li>Scheduling</li><li>Multi-Platform Distribution</li></ul></div>
+    <div class="proc-card fade-up"><div class="proc-n">06</div><div class="proc-nm">Data Tracking</div><ul class="svc-list"><li>Engagement Analysis</li><li>Content Performance</li><li>Audience Behaviour Review</li></ul></div>
+    <div class="proc-card fade-up"><div class="proc-n">07</div><div class="proc-nm">Scaling</div><ul class="svc-list"><li>Strategy Improvements</li><li>Creative Testing</li><li>Ad Expansion</li><li>Growth Recommendations</li></ul></div>
+  </div>
+</section>
+
+<!-- PORTFOLIO -->
+<section id="portfolio">
+  <div class="s-label fade-up">Our Work</div>
+  <h2 class="s-h2 fade-up">Ideas turned into attention.</h2>
+  <p class="s-sub fade-up">Real strategy. Real execution. Real results.</p>
+
+  <div class="social-cards-grid" id="workGrid">
+    <a href="https://www.instagram.com/ashokdadapandya" target="_blank" rel="noopener" class="sc-card sc-card-ig fade-up">
+      <div class="sc-card-icon"><img src="/assets/ig-ashok.jpg" alt="Ashok Dada Pandya" class="sc-pfp" loading="lazy" onerror="this.style.display='none'"></div>
+      <div class="sc-card-info">
+        <div class="sc-card-name">Ashok Dada Pandya</div>
+        <div class="sc-card-handle"><svg class="sc-platform-ico" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg> @ashokdadapandya</div>
+      </div>
+      <div class="sc-card-btn">View Profile</div>
+    </a>
+
+    <a href="https://www.instagram.com/navdurga_garba" target="_blank" rel="noopener" class="sc-card sc-card-ig fade-up">
+      <div class="sc-card-icon"><img src="/assets/ig-navdurga.jpg" alt="Navdurga Garba" class="sc-pfp" loading="lazy" onerror="this.style.display='none'"></div>
+      <div class="sc-card-info">
+        <div class="sc-card-name">Navdurga Garba</div>
+        <div class="sc-card-handle"><svg class="sc-platform-ico" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg> @navdurga_garba</div>
+      </div>
+      <div class="sc-card-btn">View Profile</div>
+    </a>
+
+    <a href="https://www.instagram.com/mamatawomenshospital" target="_blank" rel="noopener" class="sc-card sc-card-ig fade-up">
+      <div class="sc-card-icon"><img src="/assets/ig-mamata.jpg" alt="Mamata Women's Hospital" class="sc-pfp" loading="lazy" onerror="this.style.display='none'"></div>
+      <div class="sc-card-info">
+        <div class="sc-card-name">Mamata Women's Hospital</div>
+        <div class="sc-card-handle"><svg class="sc-platform-ico" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg> @mamatawomenshospital</div>
+      </div>
+      <div class="sc-card-btn">View Profile</div>
+    </a>
+
+    <a href="https://www.instagram.com/school_guruglobal" target="_blank" rel="noopener" class="sc-card sc-card-ig fade-up">
+      <div class="sc-card-icon"><img src="/assets/ig-guru.jpg" alt="Guru Global Preschool" class="sc-pfp" loading="lazy" onerror="this.style.display='none'"></div>
+      <div class="sc-card-info">
+        <div class="sc-card-name">Guru Global Preschool</div>
+        <div class="sc-card-handle"><svg class="sc-platform-ico" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg> @school_guruglobal</div>
+      </div>
+      <div class="sc-card-btn">View Profile</div>
+    </a>
+  </div>
+</section>
+
+<!-- SOCIAL MEDIA EMBEDS -->
+<section id="social-embeds">
+  <div class="s-label fade-up">Community</div>
+  <h2 class="s-h2 fade-up">Connect with us on<br><em>Social Media</em>.</h2>
+  <p class="s-sub fade-up">Stay updated with our latest insights, case studies, and behind-the-scenes content.</p>
+
+  <div class="social-cards-grid">
+    <!-- Instagram -->
+    <a href="https://instagram.com/spacegrowmedia" target="_blank" rel="noopener" class="sc-card sc-card-ig fade-up">
+      <div class="sc-card-icon"><img src="/assets/ig-spacegrow.jpg" alt="SpaceGrow Media" class="sc-pfp" loading="lazy" onerror="this.style.display='none'"></div>
+      <div class="sc-card-info">
+        <div class="sc-card-name">SpaceGrow Media</div>
+        <div class="sc-card-handle"><svg class="sc-platform-ico" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg> @spacegrowmedia</div>
+      </div>
+      <div class="sc-card-btn">View Profile</div>
+    </a>
+
+    <!-- LinkedIn -->
+    <a href="https://linkedin.com/company/spacegrowmedia" target="_blank" rel="noopener" class="sc-card sc-card-in fade-up">
+      <div class="sc-card-icon"><img src="/assets/in-spacegrow.jpg" alt="SpaceGrow Media" class="sc-pfp" loading="lazy" onerror="this.style.display='none'"></div>
+      <div class="sc-card-info">
+        <div class="sc-card-name">SpaceGrow Media</div>
+        <div class="sc-card-handle"><svg class="sc-platform-ico" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> LinkedIn Page</div>
+      </div>
+      <div class="sc-card-btn">View Profile</div>
+    </a>
+
+    <!-- Facebook -->
+    <a href="https://facebook.com/spacegrowmedia" target="_blank" rel="noopener" class="sc-card sc-card-fb fade-up">
+      <div class="sc-card-icon"><img src="/assets/fb-spacegrow.jpg" alt="SpaceGrow Media" class="sc-pfp" loading="lazy" onerror="this.style.display='none'"></div>
+      <div class="sc-card-info">
+        <div class="sc-card-name">SpaceGrow Media</div>
+        <div class="sc-card-handle"><svg class="sc-platform-ico" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> Facebook Page</div>
+      </div>
+      <div class="sc-card-btn">View Page</div>
+    </a>
+  </div>
+</section>
+
+<!-- CASE STUDIES -->
+<section id="case-studies">
+  <div class="s-label fade-up">Case Studies</div>
+  <h2 class="s-h2 fade-up">Real brands. Real results.</h2>
+  <p class="s-sub fade-up">Download detailed PDF case studies — see the strategy, execution, and outcomes for each client.</p>
+
+  <div class="proj-grid">
+    <div class="proj-card fade-up"><span class="proj-tag">Personal Brand</span><div class="proj-cl">Ashok Dada Pandya</div><p class="proj-desc">In just 3 months, SpaceGrow Media helped Ashok Dada Pandya reach thousands of people through engaging spiritual content, Bhagavad Gita teachings, and yatra promotions. Multiple reels achieved 5K–18.5K+ views, increasing awareness, engagement, and community reach beyond the local audience.</p>
+    <a href="/assets/case_studies/Ashok_Dada_Pandya_Case_Study.pdf" class="proj-btn" target="_blank">Download Case Study ↓</a></div>
+
+    <div class="proj-card fade-up"><span class="proj-tag">Healthcare</span><div class="proj-cl">Mamata Women's Hospital</div><p class="proj-desc">Healthcare branding with educational reels and trust-building content — positioning a Mira Road gynecology clinic as the go-to specialist through consistent, credible social presence.</p>
+    <a href="/assets/case_studies/Mamata_Womens_Hospital_Case_Study.pdf" class="proj-btn" target="_blank">Download Case Study ↓</a></div>
+
+    <div class="proj-card fade-up"><span class="proj-tag">Event</span><div class="proj-cl">Navdurga Garba</div><p class="proj-desc">Event promotion using high-reach creatives and a campaign-style content plan — driving awareness, registrations, and ticket interest through organic content across Instagram.</p>
+    <a href="/assets/case_studies/Navdurga_Case_Study.pdf" class="proj-btn" target="_blank">Download Case Study ↓</a></div>
+
+    <div class="proj-card fade-up"><span class="proj-tag">Education</span><div class="proj-cl">Guru Global Preschool</div><p class="proj-desc">We are managing Guru Global Preschool’s complete digital presence, including content planning, social media management, reel creation, shoot coordination, graphic design, and Meta Ads. Through consistent and engaging content, we helped increase brand awareness, connect with more parents, and strengthen the preschool’s online presence.</p>
+    <span class="proj-btn" style="color:var(--muted);border-color:transparent;cursor:not-allowed;">Case Study Coming Soon</span></div>
+  </div>
+</section>
+
+<!-- WHY US -->
+<section id="why">
+  <div class="s-label fade-up">Why SpaceGrow</div>
+  <h2 class="s-h2 fade-up">Why brands choose us<br>over bigger agencies.</h2>
+  <div class="why-grid">
+    <div class="why-card fade-up"><div class="why-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div><div class="why-nm">You Work Directly With the Founder</div><p class="why-desc">No junior account managers. No handoffs. When you message SpaceGrow, you talk to Yash — the person who actually does the work.</p></div></div>
+    <div class="why-card fade-up"><div class="why-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div><div><div class="why-nm">We Understand Your Niche</div><p class="why-desc">We don't do generic content. We specialise in healthcare, wellness, and education — brands that need trust, credibility, and warmth in every post.</p></div></div>
+    <div class="why-card fade-up"><div class="why-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div><div><div class="why-nm">Nothing Goes Live Without Your Approval</div><p class="why-desc">Every piece of content is sent to you first. You review, give feedback, we refine. Two revision rounds per deliverable — always.</p></div></div>
+    <div class="why-card fade-up"><div class="why-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div><div><div class="why-nm">Monthly Reports — Not Guesses</div><p class="why-desc">Every month you get a clear performance report — reach, engagement, follower growth, and specific recommendations for the next month.</p></div></div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="s-label fade-up">Testimonials</div>
+  <h2 class="s-h2 fade-up">What our clients say.</h2>
+  <div class="testi-grid">
+    <div class="testi-card fade-up"><div class="testi-q">"</div><p class="testi-txt">"SpaceGrow didn't just give us posts; they gave us a complete growth strategy. Our lead generation increased by 300% within the first two months, and the content is unmatched."</p><div class="testi-auth">Dr. Maheshweta Guru Mehta</div><div class="testi-co">Mamata Women's Hospital</div></div>
+    <div class="testi-card fade-up"><div class="testi-q">"</div><p class="testi-txt">"SpaceGrow Media helped us connect with more parents and build trust in our community. Their creative content and consistent social media management increased inquiries and admissions significantly. We highly recommend their team for any preschool looking to grow its presence online."</p><div class="testi-auth">Director</div><div class="testi-co">Guru Global Preschool</div></div>
+    <div class="testi-card fade-up"><div class="testi-q">"</div><p class="testi-txt">"Working directly with the founder makes all the difference. Fast communication, zero confusion, and premium design work. Highly recommend SpaceGrow Media."</p><div class="testi-auth">Director of Marketing</div><div class="testi-co">Navdurga Events</div></div>
+    <div class="testi-card fade-up"><div class="testi-q">"</div><p class="testi-txt">"SpaceGrow Media helped us transform our social media presence and reach thousands of devotees through engaging reels and professional content strategy. Our video views increased significantly, audience engagement grew consistently, and our message now reaches people far beyond our local community."</p><div class="testi-auth">Ashok Dada Pandya</div><div class="testi-co">Spiritual Speaker & Social Leader</div></div>
+  </div>
+</section>
+
+<!-- COMING SOON -->
+<section id="coming-soon">
+  <div class="s-label fade-up">Future Tech</div>
+  <h2 class="s-h2 fade-up">Next-generation growth<br>solutions coming soon.</h2>
+  <div class="svc-grid">
+    <div class="svc-card fade-up"><div class="svc-num">01</div><span class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 2v4M7 15h.01M17 15h.01M9 18h6M3 16H1M23 16h-2"/><circle cx="12" cy="6" r="2"/></svg></span><div class="svc-nm">AI Agent Development</div><p class="svc-desc">Custom AI agents for Customer Support, Lead Qualification, and Internal Operations.</p></div>
+    <div class="svc-card fade-up"><div class="svc-num">02</div><span class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></span><div class="svc-nm">AI Cloning</div><p class="svc-desc">Digital AI versions of Founders, Influencers, and Personal Brands for content creation and communication.</p></div>
+    <div class="svc-card fade-up"><div class="svc-num">03</div><span class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span><div class="svc-nm">Performance Marketing</div><p class="svc-desc">Advanced paid advertising services including Meta, Google, and Conversion Funnels.</p></div>
+    <div class="svc-card fade-up"><div class="svc-num">04</div><span class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9c.26.6.77 1.05 1.39 1.18H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><div class="svc-nm">AI Automation Systems</div><p class="svc-desc">Workflow Automation, CRM Automation, Lead Routing, and Business Process Automation.</p></div>
+  </div>
+</section>
+
+<!-- ADD-ONS -->
+<section id="addons">
+  <div class="s-label fade-up">Add-Ons</div>
+  <h2 class="s-h2 fade-up">Optional upgrades<br>you can add anytime.</h2>
+  <div class="ao-grid">
+    <div class="ao-card fade-up"><span class="ao-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></span><div class="ao-nm">One-Time Setup</div><p class="ao-desc">Audit + tracking sheet + WhatsApp quick replies + baseline creatives to start strong from Day 1.</p></div>
+    <div class="ao-card fade-up"><span class="ao-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><div class="ao-nm">Website Development</div><p class="ao-desc">Static 4–5 page site or a lead-capture page with WhatsApp buttons and contact forms.</p></div>
+    <div class="ao-card fade-up"><span class="ao-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.24-.26-.39-.62-.39-1.01 0-.83.67-1.5 1.5-1.5H16c3.31 0 6-2.69 6-6 0-5.52-4.48-9.98-10-9.98z"/><circle cx="7.5" cy="11.5" r="1.5"/><circle cx="10.5" cy="7.5" r="1.5"/><circle cx="14.5" cy="7.5" r="1.5"/><circle cx="17.5" cy="11.5" r="1.5"/></svg></span><div class="ao-nm">Branding Kit</div><p class="ao-desc">Colors, fonts, and Canva templates for posts and stories — so your brand always looks consistent.</p></div>
+    <div class="ao-card fade-up"><span class="ao-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span><div class="ao-nm">WhatsApp Automation</div><p class="ao-desc">Automated reply flows for your business WhatsApp. Custom scope — priced per project.</p></div>
+    <div class="ao-card fade-up"><span class="ao-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></span><div class="ao-nm">Shoot Planning</div><p class="ao-desc">We plan and coordinate content shoots for your brand. Visit-based, priced separately.</p></div>
+    <div class="ao-card fade-up"><span class="ao-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></span><div class="ao-nm">Analytics Report</div><p class="ao-desc">Detailed monthly PDF with reach, engagement, growth, and next-month recommendations.</p></div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="s-label fade-up">FAQ</div>
+  <h2 class="s-h2 fade-up">Questions we get<br>before every sales call.</h2>
+  <div class="faq-list fade-up">
+    <div class="faq-item"><button class="faq-q">Do you work with businesses outside your local area?<span class="faq-ico">+</span></button><div class="faq-ans"><p>Yes. We are a global digital growth partner. We work with clients across the world remotely via WhatsApp and Google Meet.</p></div></div>
+    <div class="faq-item"><button class="faq-q">How do content approvals work?<span class="faq-ico">+</span></button><div class="faq-ans"><p>We share all content for your approval before anything goes live. You get 2 rounds of revisions per deliverable — everything is approved by you first, always.</p></div></div>
+    <div class="faq-item"><button class="faq-q">What if I don't have video footage?<span class="faq-ico">+</span></button><div class="faq-ans"><p>We guide you on what to shoot on your own phone. We also work with stock footage and motion graphics where needed.</p></div></div>
+    <div class="faq-item"><button class="faq-q">How long before I see results?<span class="faq-ico">+</span></button><div class="faq-ans"><p>Most clients see improved content consistency and engagement within 30–45 days. Follower growth, SEO improvements, and lead generation build from Month 2 onwards.</p></div></div>
+    <div class="faq-item"><button class="faq-q">Do you lock clients into long contracts?<span class="faq-ico">+</span></button><div class="faq-ans"><p>We recommend a 3-month commitment for best results, but we are extremely flexible. All agreements include a 30-day exit clause for peace of mind.</p></div></div>
+    <div class="faq-item"><button class="faq-q">Is ad spend included in the package?<span class="faq-ico">+</span></button><div class="faq-ans"><p>No. Our agency fees cover our work — content creation, management, website dev, and strategy. Ad spend is a separate budget paid directly to Meta or Google by you.</p></div></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-grid">
+    <div>
+      <div class="s-label fade-up">Contact</div>
+      <h2 class="s-h2 fade-up">Start with a free<br>social media audit.</h2>
+      <p class="s-sub fade-up">No pitch, no pressure — just real insights about what's working and what isn't. We reply within 24 hours.</p>
+      <div class="contact-methods">
+        <a href="https://wa.me/919987272788" class="cm fade-up" target="_blank"><span class="cm-ico"><svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></span>WhatsApp (fastest): +91 99872 72788</a>
+        <a href="mailto:info@spacegrowmedia.com" class="cm fade-up"><span class="cm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg></span>info@spacegrowmedia.com</a>
+        <a href="https://www.instagram.com/spacegrowmedia" class="cm fade-up" target="_blank"><span class="cm-ico"><svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></span>@spacegrowmedia</a>
+      </div>
+    </div>
+    <div class="fade-up">
+      <div class="cf">
+        <div class="form-row">
+          <div class="fg"><label for="fn">Your Name</label><input type="text" id="fn" placeholder="Rahul Sharma"></div>
+          <div class="fg"><label for="fb">Business Name</label><input type="text" id="fb" placeholder="Your Business"></div>
+        </div>
+        <div class="fg"><label for="fi">Industry</label><select id="fi"><option value="">Select industry...</option><option>Healthcare / Clinic</option><option>Wellness / Spiritual</option><option>Education / School</option><option>Restaurant / Food</option><option>Events / Entertainment</option><option>E-commerce</option><option>Other</option></select></div>
+        <div class="fg"><label for="fg2">Main Goal</label><textarea id="fg2" placeholder="Tell us what you want to achieve — more inquiries, better content, follower growth..."></textarea></div>
+        <button class="f-submit">Send via WhatsApp →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-grid">
+    <div><div class="foot-logo">Space<em>Grow</em> Media</div><p class="foot-desc">Strategy-led digital growth and technology solutions for premium brands worldwide.</p></div>
+    <div><div class="foot-col-t">Services</div><ul class="foot-links"><li><a href="#services">Social Media</a></li><li><a href="#services">Web Development</a></li><li><a href="#services">Meta Ads</a></li><li><a href="#services">App Development</a></li></ul></div>
+    <div><div class="foot-col-t">Company</div><ul class="foot-links"><li><a href="#about">About Yash</a></li><li><a href="#portfolio">Our Work</a></li><li><a href="#faq">FAQ</a></li><li><a href="#contact">Contact</a></li></ul></div>
+    <div><div class="foot-col-t">Contact</div><ul class="foot-links"><li><a href="https://wa.me/919987272788" target="_blank">WhatsApp</a></li><li><a href="mailto:info@spacegrowmedia.com">Email</a></li><li><a href="https://www.instagram.com/spacegrowmedia" target="_blank">Instagram</a></li><li><a href="https://www.linkedin.com/company/spacegrow-media/" target="_blank">LinkedIn</a></li></ul></div>
+  </div>
+  <div class="foot-bottom"><div class="foot-copy">© 2025–<script>document.write(new Date().getFullYear())</script> SpaceGrow Media</div><div class="foot-soc"><a href="https://www.instagram.com/spacegrowmedia" target="_blank" rel="noopener">Instagram</a><a href="https://www.linkedin.com/company/spacegrow-media/" target="_blank" rel="noopener">LinkedIn</a><a href="https://wa.me/919987272788" target="_blank" rel="noopener">WhatsApp</a></div></div>
+</footer>
+
+</div><!-- /site -->
+
+<!-- FLOATING WHATSAPP -->
+<a id="wa-float" href="https://wa.me/919987272788" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="vertical-align:middle"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Chat with us</a>
+
+<!-- Application JS (module — deferred by default) -->
+<script type="module" src="/app.js"></script>
+
+</body>
+</html>
