@@ -5,18 +5,7 @@
   command = "npm run build"
   publish = "dist"
 
-# Redirect apex to www
-[[redirects]]
-  from = "https://spacegrowmedia.com/*"
-  to = "https://www.spacegrowmedia.com/:splat"
-  status = 301
-  force = true
 
-# SPA Fallback
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
 
 # Security & caching headers
 [[headers]]
