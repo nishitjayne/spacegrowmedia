@@ -12,11 +12,11 @@
   status = 301
   force = true
 
-# Custom 404
+# SPA Fallback
 [[redirects]]
   from = "/*"
-  to = "/404.html"
-  status = 404
+  to = "/index.html"
+  status = 200
 
 # Security & caching headers
 [[headers]]
