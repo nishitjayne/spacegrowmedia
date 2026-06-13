@@ -16,9 +16,11 @@ The website was designed to break away from traditional "boring" agency websites
 
 - **Interactive 3D Background**: A fully responsive, animated solar system built with WebGL and Three.js, featuring rotating planets, dynamic lighting, and particle effects.
 - **Premium Aesthetics**: High-contrast dark mode design with vibrant neon accents (`#00e5ff` Cyan, `#a020f0` Deep Purple, and `#ccff00` Lime) and glassmorphism elements.
-- **Dynamic Integrations**: 
-  - Direct WhatsApp lead generation form integration.
+- **Dynamic Integrations & Lead Generation**: 
+  - Frictionless contact forms with direct WhatsApp and Calendly scheduling integrations.
+  - Direct-to-Gmail optimized `mailto` links preventing OS-level mail app freezes.
   - Interactive, hover-activated social media profile cards.
+- **Conversion-Optimized Copy & Trust Signals**: Focuses on hard numerical results (500k+ views), clear value propositions, and a dedicated "Brands We've Worked With" client showcase.
 - **Responsive Layout**: Fluid typography, CSS Grid/Flexbox layouts, and optimized touch targets ensuring a seamless experience across desktop, tablet, and mobile devices.
 - **SEO Ready**: Fully configured with `sitemap.xml`, `robots.txt`, Open Graph / Twitter meta tags, and structured JSON-LD schema data for local business visibility.
 
