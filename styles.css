@@ -117,7 +117,7 @@ nav.scrolled { background:var(--bg); border-bottom:1px solid var(--border); padd
 .mob-menu .ml:hover { color:var(--lime); text-shadow: 4px 4px 0 var(--brand-purple); }
 .close-mob { position:absolute; top:1.2rem; right:5%; font-size:2.2rem; color:var(--lime); cursor:pointer; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border:1px solid var(--lime); transition:all .2s; z-index:103; }
 .close-mob:hover { background:var(--lime); color:#000; }
-.mob-menu .btn-lime { margin-top:3rem; padding:0.5rem 0.8rem; font-size:0.85rem; letter-spacing:0.05em; align-self:flex-end; box-shadow:3px 3px 0 var(--brand-purple); }
+.mob-menu .btn-lime { margin-top:3rem; margin-right:-10px; padding:0.5rem 0.8rem; font-size:0.85rem; letter-spacing:0.05em; align-self:flex-end; box-shadow:3px 3px 0 var(--brand-purple); }
 
 /* ── Hero ── */
 #hero { min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:5.5rem 5% 2rem; position:relative; overflow:hidden; }
