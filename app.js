@@ -310,11 +310,11 @@ $$('.faq-q').forEach((btn) => {
 // 7. Contact Form — Validation + WhatsApp Submit
 // ═══════════════════════════════════════════════════════
 
-function clearErrors() {
+function clearFormErrors() {
   $$('.fg.has-error').forEach((fg) => fg.classList.remove('has-error'));
 }
 
-function showError(inputId, message) {
+function showFieldError(inputId, message) {
   const input = $(inputId);
   if (!input) return;
   const fg = input.closest('.fg');
@@ -330,8 +330,8 @@ function showError(inputId, message) {
   errorEl.style.display = 'block';
 }
 
-function submitForm() {
-  clearErrors();
+function handleContactFormSubmit() {
+  clearFormErrors();
   const name = ($('fn')?.value || '').trim();
   const business = ($('fb')?.value || '').trim();
   const industry = ($('fi')?.value || '').trim();
@@ -339,7 +339,7 @@ function submitForm() {
 
   let hasError = false;
   if (!name) {
-    showError('fn', 'Please enter your name');
+    showFieldError('fn', 'Please enter your name');
     hasError = true;
   }
 
@@ -350,6 +350,15 @@ function submitForm() {
   }
 
   const message = `Hi SpaceGrow Media!\n\nI'd like a free audit.\n\nName: ${name}\nBusiness: ${business}\nIndustry: ${industry}\nGoal: ${goal}`;
+  
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', 'generate_lead', {
+      lead_source: 'website',
+      cta_location: 'contact_form',
+      service_interest: industry || goal || 'not_specified'
+    });
+  }
+
   window.open(
     `https://wa.me/919987272788?text=${encodeURIComponent(message)}`,
     '_blank'
@@ -357,9 +366,9 @@ function submitForm() {
 }
 
 // Bind submit button via DOM query instead of inline onclick
-const submitBtn = document.querySelector('.f-submit');
-if (submitBtn) {
-  submitBtn.addEventListener('click', submitForm);
+const contactFormSubmitBtn = document.querySelector('.f-submit');
+if (contactFormSubmitBtn) {
+  contactFormSubmitBtn.addEventListener('click', handleContactFormSubmit);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -408,3 +417,89 @@ setTimeout(() => {
     console.warn('Space background initialization failed:', e);
   }
 }, 3000);
+
+// ═══════════════════════════════════════════════════════
+// 13. GA4 Event Tracking & Scroll Depth
+// ═══════════════════════════════════════════════════════
+
+/**
+ * Safe GA4 event dispatcher. Does nothing if gtag is not loaded.
+ */
+function trackGA4Event(eventName, params = {}) {
+  if (typeof window.gtag !== 'function') {
+    console.warn('GA4 event not sent because gtag is not defined', eventName, params);
+    return;
+  }
+  console.log('Sending GA4 event:', eventName, params);
+  window.gtag('event', eventName, params);
+}
+
+/**
+ * Detects which section of the page a given element belongs to.
+ */
+function detectCtaLocation(element) {
+  const sectionMap = {
+    'hero':         'hero_section',
+    'services':     'services_section',
+    'portfolio':    'portfolio_section',
+    'case-studies': 'case_studies_section',
+    'contact':      'contact_section',
+    'about':        'about_section',
+    'faq':          'faq_section',
+  };
+  for (const [sectionId, label] of Object.entries(sectionMap)) {
+    if (element.closest(`#${sectionId}`)) return label;
+  }
+  if (element.closest('nav')) return 'navigation';
+  if (element.closest('footer')) return 'footer';
+  if (element.id === 'wa-float' || element.closest('#wa-float')) return 'floating_button';
+  return 'unknown';
+}
+
+function detectSocialPlatform(url) {
+  if (url.includes('instagram.com')) return 'Instagram';
+  if (url.includes('linkedin.com'))  return 'LinkedIn';
+  if (url.includes('facebook.com'))  return 'Facebook';
+  return 'Other';
+}
+
+document.addEventListener('click', function(e) {
+  const anchor = e.target.closest('a');
+  if (!anchor) return;
+
+  const href = anchor.getAttribute('href') || '';
+  const url = href.toLowerCase();
+  const linkText = (anchor.innerText || anchor.textContent || '').trim();
+  const ctaLocation = detectCtaLocation(anchor);
+
+  if (url.includes('wa.me')) {
+    trackGA4Event('click_whatsapp', { link_url: href, link_text: linkText, cta_location: ctaLocation });
+  } else if (url.includes('calendly.com')) {
+    trackGA4Event('book_strategy_call', { link_url: href, link_text: linkText, cta_location: ctaLocation });
+  } else if (url.startsWith('mailto:')) {
+    trackGA4Event('click_email', { link_url: href, link_text: linkText, cta_location: ctaLocation });
+  } else if (url.includes('.pdf')) {
+    trackGA4Event('download_case_study', { file_name: href.split('/').pop(), link_text: linkText, cta_location: ctaLocation });
+  } else if (url.includes('instagram.com') || url.includes('linkedin.com') || url.includes('facebook.com')) {
+    trackGA4Event('social_click', { platform: detectSocialPlatform(url), link_url: href, link_text: linkText, cta_location: ctaLocation });
+  } else if (url === '#services') {
+    trackGA4Event('service_click', { link_url: href, link_text: linkText, cta_location: ctaLocation });
+  }
+});
+
+// Scroll Depth Tracking
+(function initScrollDepthTracking() {
+  const scrollMilestones = { 50: false, 90: false };
+  window.addEventListener('scroll', function onScrollDepth() {
+    const scrolledPercent = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+    if (!scrollMilestones[50] && scrolledPercent >= 50) {
+      scrollMilestones[50] = true;
+      trackGA4Event('scroll_depth', { percent_scrolled: 50 });
+    }
+    if (!scrollMilestones[90] && scrolledPercent >= 90) {
+      scrollMilestones[90] = true;
+      trackGA4Event('scroll_depth', { percent_scrolled: 90 });
+      window.removeEventListener('scroll', onScrollDepth);
+    }
+  }, { passive: true });
+})();
