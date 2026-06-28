@@ -1,16 +1,7 @@
-/* ═══════════════════════════════════════════════════════
-   SpaceGrow Media — Main Application Module
-   ═══════════════════════════════════════════════════════ */
-
 import { initSpaceBackground } from './space-bg.js';
 
-// ── Utility: safe element query ──
 const $ = (id) => document.getElementById(id);
 const $$ = (sel) => document.querySelectorAll(sel);
-
-// ═══════════════════════════════════════════════════════
-// 1. Custom Cursor
-// ═══════════════════════════════════════════════════════
 
 const cursorDot = $('cd');
 const cursorRing = $('cr');
@@ -33,15 +24,10 @@ if (!isTouchDevice && cursorDot && cursorRing) {
   })();
 }
 
-// Hover state for interactive elements
 $$('a,button,.svc-card,.pkg-card,.proj-card,.why-card,.testi-card,.ao-card,.faq-q').forEach((el) => {
   el.addEventListener('mouseenter', () => document.body.classList.add('hov'));
   el.addEventListener('mouseleave', () => document.body.classList.remove('hov'));
 });
-
-// ═══════════════════════════════════════════════════════
-// 2. Intro Animation — Twinkling Starfield
-// ═══════════════════════════════════════════════════════
 
 const introCanvas = $('intro-canvas');
 let introCtx, introStars = [], introTime = 0;
@@ -102,10 +88,6 @@ if (introCanvas) {
   }
   drawIntroStars();
 }
-
-// ═══════════════════════════════════════════════════════
-// 3. Intro Animation — Logo, Rocket, Ring
-// ═══════════════════════════════════════════════════════
 
 const introScreen = $('intro');
 const logoReveal = $('logo-reveal');
@@ -200,16 +182,13 @@ if (introScreen && trail && guide && rocket && burstCanvas && ring) {
     trail.style.strokeDashoffset = Math.max(0, totalLen - distance);
   }
 
-  // Start animation sequence
   setTimeout(() => {
-    // Phase 1 — circle ring draws in
+
     ring.style.transition = 'stroke-dashoffset 1.2s ease-out';
     ring.style.strokeDashoffset = '0';
 
-    // Phase 2 — pixel cluster appears
     setTimeout(() => triggerBurst(), 350);
 
-    // Phase 3 — rocket flies along S-curve trail
     setTimeout(() => {
       rocket.style.transition = 'opacity 0.15s';
       rocket.style.opacity = '1';
@@ -225,12 +204,10 @@ if (introScreen && trail && guide && rocket && burstCanvas && ring) {
       }
       requestAnimationFrame(fly);
 
-      // Phase 4 — brand name fades in mid-flight
       setTimeout(() => {
         if (logoReveal) logoReveal.classList.add('on');
       }, 1900);
 
-      // Phase 5 — transition to main site
       setTimeout(() => {
         if (mainSite) {
           mainSite.style.display = 'block';
@@ -244,10 +221,6 @@ if (introScreen && trail && guide && rocket && burstCanvas && ring) {
     }, 700);
   }, 0);
 }
-
-// ═══════════════════════════════════════════════════════
-// 4. Navigation
-// ═══════════════════════════════════════════════════════
 
 const nav = $('nav');
 if (nav) {
@@ -274,10 +247,6 @@ $$('.ml').forEach((link) => {
   });
 });
 
-// ═══════════════════════════════════════════════════════
-// 5. Scroll Animations (IntersectionObserver)
-// ═══════════════════════════════════════════════════════
-
 const observer = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {
@@ -293,10 +262,6 @@ const observer = new IntersectionObserver(
 );
 $$('.fade-up').forEach((el) => observer.observe(el));
 
-// ═══════════════════════════════════════════════════════
-// 6. FAQ Accordion
-// ═══════════════════════════════════════════════════════
-
 $$('.faq-q').forEach((btn) => {
   btn.addEventListener('click', () => {
     const item = btn.parentElement;
@@ -305,10 +270,6 @@ $$('.faq-q').forEach((btn) => {
     if (!isOpen) item.classList.add('open');
   });
 });
-
-// ═══════════════════════════════════════════════════════
-// 7. Contact Form — Validation + WhatsApp Submit
-// ═══════════════════════════════════════════════════════
 
 function clearFormErrors() {
   $$('.fg.has-error').forEach((fg) => fg.classList.remove('has-error'));
@@ -350,7 +311,7 @@ function handleContactFormSubmit() {
   }
 
   const message = `Hi SpaceGrow Media!\n\nI'd like a free audit.\n\nName: ${name}\nBusiness: ${business}\nIndustry: ${industry}\nGoal: ${goal}`;
-  
+
   if (typeof window.gtag === 'function') {
     window.gtag('event', 'generate_lead', {
       lead_source: 'website',
@@ -365,15 +326,10 @@ function handleContactFormSubmit() {
   );
 }
 
-// Bind submit button via DOM query instead of inline onclick
 const contactFormSubmitBtn = document.querySelector('.f-submit');
 if (contactFormSubmitBtn) {
   contactFormSubmitBtn.addEventListener('click', handleContactFormSubmit);
 }
-
-// ═══════════════════════════════════════════════════════
-// 8. Smooth Scroll for Anchor Links
-// ═══════════════════════════════════════════════════════
 
 $$('a[href^="#"]').forEach((anchor) => {
   anchor.addEventListener('click', (e) => {
@@ -387,29 +343,15 @@ $$('a[href^="#"]').forEach((anchor) => {
   });
 });
 
-// ═══════════════════════════════════════════════════════
-// 9. Nav Morph Animation
-// ═══════════════════════════════════════════════════════
-
 $$('.nav-links a, .nav-cta, .mob-menu a, .nav-logo').forEach((btn) => {
   btn.addEventListener('mousedown', function () {
     this.classList.remove('morph-active');
-    void this.offsetWidth; // Force reflow to restart animation
+    void this.offsetWidth; 
     this.classList.add('morph-active');
     setTimeout(() => this.classList.remove('morph-active'), 600);
   });
 });
 
-
-
-
-
-// ═══════════════════════════════════════════════════════
-// 12. Space Background — Delayed Init
-// ═══════════════════════════════════════════════════════
-
-// Initialize WebGL at 3000ms — after rocket animation, before screen transition.
-// Hides heavy GPU init so the intro animation doesn't stutter.
 setTimeout(() => {
   try {
     initSpaceBackground();
@@ -418,13 +360,6 @@ setTimeout(() => {
   }
 }, 3000);
 
-// ═══════════════════════════════════════════════════════
-// 13. GA4 Event Tracking & Scroll Depth
-// ═══════════════════════════════════════════════════════
-
-/**
- * Safe GA4 event dispatcher. Does nothing if gtag is not loaded.
- */
 function trackGA4Event(eventName, params = {}) {
   if (typeof window.gtag !== 'function') {
     console.warn('GA4 event not sent because gtag is not defined', eventName, params);
@@ -434,9 +369,6 @@ function trackGA4Event(eventName, params = {}) {
   window.gtag('event', eventName, params);
 }
 
-/**
- * Detects which section of the page a given element belongs to.
- */
 function detectCtaLocation(element) {
   const sectionMap = {
     'hero':         'hero_section',
@@ -487,7 +419,6 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// Scroll Depth Tracking
 (function initScrollDepthTracking() {
   const scrollMilestones = { 50: false, 90: false };
   window.addEventListener('scroll', function onScrollDepth() {
