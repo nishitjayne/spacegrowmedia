@@ -149,6 +149,12 @@
 <div class="sky-fallback" aria-hidden="true"></div>
 <div class="vignette" aria-hidden="true"></div>
 <div class="cursor-glow" id="cursor-glow" aria-hidden="true"></div>
+<div class="labels" id="labels" aria-hidden="true"></div>
+<button type="button" class="explore-btn" id="explore-toggle" aria-pressed="false"><svg class="i" width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>Explore space</span></button>
+<div class="explore-hud" aria-live="polite">
+  <p class="hud-keys"><b>Drag</b> look around <i></i> <b>W A S D</b> fly <i></i> <b>Shift</b> boost <i></i> <b>Click</b> a planet to travel <i></i> <b>Esc</b> back to site</p>
+  <p class="hud-msg" id="hud-msg"></p>
+</div>
 
 <!-- INTRO -->
 <div id="intro">
@@ -193,14 +199,15 @@
     </a>
     <nav aria-label="Main">
       <ul class="nav-links" id="nav-links">
-        <li><a href="#about">About</a></li>
-        <li><a href="#services">Services</a></li>
         <li><a href="#portfolio">Our Work</a></li>
         <li><a href="#case-studies">Case Studies</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#services">Services</a></li>
         <li><a href="#faq">FAQ</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
     </nav>
+    <button type="button" class="nav-explore" id="explore-nav"><svg class="i" width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Explore space</button>
     <a href="https://wa.me/919987272788?text=Hi%20SpaceGrow!%20I%20want%20a%20free%20social%20media%20audit." class="btn btn-primary btn-sm nav-cta magnetic" target="_blank" rel="noopener"><span>Get Free Audit</span></a>
     <button type="button" class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mob-menu"><span></span><span></span></button>
   </div>
@@ -210,10 +217,10 @@
 <div class="mob" id="mob-menu" role="dialog" aria-modal="true" aria-label="Menu" inert>
   <button type="button" class="mob-close" id="close-mob" aria-label="Close menu"><span></span><span></span></button>
   <nav aria-label="Mobile">
-    <a href="#about" style="--i:0">About</a>
-    <a href="#services" style="--i:1">Services</a>
-    <a href="#portfolio" style="--i:2">Our Work</a>
-    <a href="#case-studies" style="--i:3">Case Studies</a>
+    <a href="#portfolio" style="--i:0">Our Work</a>
+    <a href="#case-studies" style="--i:1">Case Studies</a>
+    <a href="#about" style="--i:2">About</a>
+    <a href="#services" style="--i:3">Services</a>
     <a href="#faq" style="--i:4">FAQ</a>
     <a href="#contact" style="--i:5">Contact</a>
   </nav>
@@ -258,7 +265,95 @@
   </div>
 </section>
 
-<section id="about" data-scene="1">
+<section id="portfolio">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow reveal">Our Work</p>
+      <h2 class="h2" data-split>Ideas turned into <em>attention.</em></h2>
+      <p class="lede reveal" style="--i:2">Real strategy. Real execution. Real results.</p>
+    </div>
+    <div class="profiles">
+      <a href="https://www.instagram.com/ashokdadapandya" target="_blank" rel="noopener" class="profile tilt reveal">
+        <img class="pfp" src="/assets/opt/ig-ashok.webp" alt="" width="80" height="80" loading="lazy">
+        <h3>Ashok Dada Pandya</h3>
+        <span class="handle"><svg class="i-solid" width="14" height="14"><use href="#i-ig"/></svg>@ashokdadapandya</span>
+        <span class="go">View Profile <svg class="i" width="16" height="16"><use href="#i-arrow"/></svg></span>
+      </a>
+      <a href="https://www.instagram.com/navdurga_garba" target="_blank" rel="noopener" class="profile tilt reveal" style="--i:1">
+        <img class="pfp" src="/assets/opt/ig-navdurga.webp" alt="" width="80" height="80" loading="lazy">
+        <h3>Navdurga Garba</h3>
+        <span class="handle"><svg class="i-solid" width="14" height="14"><use href="#i-ig"/></svg>@navdurga_garba</span>
+        <span class="go">View Profile <svg class="i" width="16" height="16"><use href="#i-arrow"/></svg></span>
+      </a>
+      <a href="https://www.instagram.com/mamatawomenshospital" target="_blank" rel="noopener" class="profile tilt reveal" style="--i:2">
+        <img class="pfp" src="/assets/opt/ig-mamata.webp" alt="" width="80" height="80" loading="lazy">
+        <h3>Mamata Women's Hospital</h3>
+        <span class="handle"><svg class="i-solid" width="14" height="14"><use href="#i-ig"/></svg>@mamatawomenshospital</span>
+        <span class="go">View Profile <svg class="i" width="16" height="16"><use href="#i-arrow"/></svg></span>
+      </a>
+      <a href="https://www.instagram.com/school_guruglobal" target="_blank" rel="noopener" class="profile tilt reveal" style="--i:3">
+        <img class="pfp" src="/assets/opt/ig-guru.webp" alt="" width="80" height="80" loading="lazy">
+        <h3>Guru Global Preschool</h3>
+        <span class="handle"><svg class="i-solid" width="14" height="14"><use href="#i-ig"/></svg>@school_guruglobal</span>
+        <span class="go">View Profile <svg class="i" width="16" height="16"><use href="#i-arrow"/></svg></span>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<section id="case-studies" data-scene="1">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow reveal">Case Studies</p>
+      <h2 class="h2" data-split>Real brands. <em>Real results.</em></h2>
+      <p class="lede reveal" style="--i:2">Download detailed PDF case studies — see the strategy, execution, and outcomes for each client.</p>
+    </div>
+    <div class="cases">
+      <article class="case tilt reveal">
+        <div class="case-top"><img src="/assets/opt/ig-ashok.webp" alt="" width="56" height="56" loading="lazy"><span class="badge">Personal Brand</span></div>
+        <h3>Ashok Dada Pandya</h3>
+        <p>In just 3 months, SpaceGrow Media helped Ashok Dada Pandya reach thousands of people through engaging spiritual content, Bhagavad Gita teachings, and yatra promotions. Multiple reels achieved 5K–18.5K+ views, increasing awareness, engagement, and community reach beyond the local audience.</p>
+        <a href="/assets/case_studies/Ashok_Dada_Pandya_Case_Study.pdf" class="link" target="_blank" rel="noopener">Download Case Study <svg class="i" width="16" height="16"><use href="#i-down"/></svg></a>
+      </article>
+      <article class="case tilt reveal" style="--i:1">
+        <div class="case-top"><img src="/assets/opt/ig-mamata.webp" alt="" width="56" height="56" loading="lazy"><span class="badge">Healthcare</span></div>
+        <h3>Mamata Women's Hospital</h3>
+        <p>Healthcare branding with educational reels and trust-building content — positioning a Mira Road gynecology clinic as the go-to specialist through consistent, credible social presence.</p>
+        <a href="/assets/case_studies/Mamata_Womens_Hospital_Case_Study.pdf" class="link" target="_blank" rel="noopener">Download Case Study <svg class="i" width="16" height="16"><use href="#i-down"/></svg></a>
+      </article>
+      <article class="case tilt reveal">
+        <div class="case-top"><img src="/assets/opt/ig-navdurga.webp" alt="" width="56" height="56" loading="lazy"><span class="badge">Event</span></div>
+        <h3>Navdurga Garba</h3>
+        <p>Event promotion using high-reach creatives and a campaign-style content plan — driving awareness, registrations, and ticket interest through organic content across Instagram.</p>
+        <a href="/assets/case_studies/Navdurga_Case_Study.pdf" class="link" target="_blank" rel="noopener">Download Case Study <svg class="i" width="16" height="16"><use href="#i-down"/></svg></a>
+      </article>
+      <article class="case tilt reveal" style="--i:1">
+        <div class="case-top"><img src="/assets/opt/ig-guru.webp" alt="" width="56" height="56" loading="lazy"><span class="badge">Education</span></div>
+        <h3>Guru Global Preschool</h3>
+        <p>We are managing Guru Global Preschool’s complete digital presence, including content planning, social media management, reel creation, shoot coordination, graphic design, and Meta Ads. Through consistent and engaging content, we helped increase brand awareness, connect with more parents, and strengthen the preschool’s online presence.</p>
+        <span class="link off">Case Study Coming Soon</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="testimonials">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow reveal">Testimonials</p>
+      <h2 class="h2" data-split>What our clients <em>say.</em></h2>
+    </div>
+    <div class="quotes">
+      <figure class="quote reveal"><blockquote>SpaceGrow didn't just give us posts; they gave us a complete growth strategy. Our lead generation increased by 300% within the first two months, and the content is unmatched.</blockquote><figcaption><b>Dr. Maheshweta Guru Mehta</b><span>Mamata Women's Hospital</span></figcaption></figure>
+      <figure class="quote reveal" style="--i:1"><blockquote>SpaceGrow Media helped us connect with more parents and build trust in our community. Their creative content and consistent social media management increased inquiries and admissions significantly. We highly recommend their team for any preschool looking to grow its presence online.</blockquote><figcaption><b>Director</b><span>Guru Global Preschool</span></figcaption></figure>
+      <figure class="quote reveal"><blockquote>Working directly with the founder makes all the difference. Fast communication, zero confusion, and premium design work. Highly recommend SpaceGrow Media.</blockquote><figcaption><b>Director of Marketing</b><span>Navdurga Events</span></figcaption></figure>
+      <figure class="quote reveal" style="--i:1"><blockquote>SpaceGrow Media helped us transform our social media presence and reach thousands of devotees through engaging reels and professional content strategy. Our video views increased significantly, audience engagement grew consistently, and our message now reaches people far beyond our local community.</blockquote><figcaption><b>Ashok Dada Pandya</b><span>Spiritual Speaker &amp; Social Leader</span></figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="about" data-scene="2">
   <div class="wrap about">
     <div class="about-copy">
       <p class="eyebrow reveal">About</p>
@@ -282,7 +377,22 @@
   </div>
 </section>
 
-<section id="services" data-scene="2">
+<section id="why">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow reveal">Why SpaceGrow</p>
+      <h2 class="h2" data-split>Why brands choose us over <em>bigger agencies.</em></h2>
+    </div>
+    <div class="why">
+      <article class="why-card reveal"><span class="card-ico"><svg class="i"><use href="#i-user"/></svg></span><div><h3>You Work Directly With the Founder</h3><p>No junior account managers. No handoffs. When you message SpaceGrow, you talk to Yash — the person who actually does the work.</p></div></article>
+      <article class="why-card reveal" style="--i:1"><span class="card-ico"><svg class="i"><use href="#i-target"/></svg></span><div><h3>We Understand Your Niche</h3><p>We don't do generic content. We specialise in healthcare, wellness, and education — brands that need trust, credibility, and warmth in every post.</p></div></article>
+      <article class="why-card reveal"><span class="card-ico"><svg class="i"><use href="#i-check"/></svg></span><div><h3>Nothing Goes Live Without Your Approval</h3><p>Every piece of content is sent to you first. You review, give feedback, we refine. Two revision rounds per deliverable — always.</p></div></article>
+      <article class="why-card reveal" style="--i:1"><span class="card-ico"><svg class="i"><use href="#i-bars"/></svg></span><div><h3>Monthly Reports — Not Guesses</h3><p>Every month you get a clear performance report — reach, engagement, follower growth, and specific recommendations for the next month.</p></div></article>
+    </div>
+  </div>
+</section>
+
+<section id="services" data-scene="3">
   <div class="wrap">
     <div class="head">
       <p class="eyebrow reveal">Services</p>
@@ -340,7 +450,24 @@
   </div>
 </section>
 
-<section id="process" data-scene="3">
+<section id="addons">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow reveal">Add-Ons</p>
+      <h2 class="h2" data-split>Optional upgrades you can <em>add anytime.</em></h2>
+    </div>
+    <div class="addons">
+      <article class="addon reveal"><span class="card-ico"><svg class="i"><use href="#i-doc"/></svg></span><div><h3>One-Time Setup</h3><p>Audit + tracking sheet + WhatsApp quick replies + baseline creatives to start strong from Day 1.</p></div></article>
+      <article class="addon reveal" style="--i:1"><span class="card-ico"><svg class="i"><use href="#i-web"/></svg></span><div><h3>Website Development</h3><p>Static 4–5 page site or a lead-capture page with WhatsApp buttons and contact forms.</p></div></article>
+      <article class="addon reveal" style="--i:2"><span class="card-ico"><svg class="i"><use href="#i-pal"/></svg></span><div><h3>Branding Kit</h3><p>Colors, fonts, and Canva templates for posts and stories — so your brand always looks consistent.</p></div></article>
+      <article class="addon reveal"><span class="card-ico"><svg class="i"><use href="#i-chat"/></svg></span><div><h3>WhatsApp Automation</h3><p>Automated reply flows for your business WhatsApp. Custom scope — priced per project.</p></div></article>
+      <article class="addon reveal" style="--i:1"><span class="card-ico"><svg class="i"><use href="#i-cam"/></svg></span><div><h3>Shoot Planning</h3><p>We plan and coordinate content shoots for your brand. Visit-based, priced separately.</p></div></article>
+      <article class="addon reveal" style="--i:2"><span class="card-ico"><svg class="i"><use href="#i-bars"/></svg></span><div><h3>Analytics Report</h3><p>Detailed monthly PDF with reach, engagement, growth, and next-month recommendations.</p></div></article>
+    </div>
+  </div>
+</section>
+
+<section id="process" data-scene="4">
   <div class="wrap proc">
     <div class="proc-head">
       <p class="eyebrow reveal">How We Work</p>
@@ -355,139 +482,6 @@
       <li class="step reveal"><span class="step-n">06</span><div><h3>Data Tracking</h3><ul class="ticks"><li>Engagement Analysis</li><li>Content Performance</li><li>Audience Behaviour Review</li></ul></div></li>
       <li class="step reveal"><span class="step-n">07</span><div><h3>Scaling</h3><ul class="ticks"><li>Strategy Improvements</li><li>Creative Testing</li><li>Ad Expansion</li><li>Growth Recommendations</li></ul></div></li>
     </ol>
-  </div>
-</section>
-
-<section id="portfolio">
-  <div class="wrap">
-    <div class="head">
-      <p class="eyebrow reveal">Our Work</p>
-      <h2 class="h2" data-split>Ideas turned into <em>attention.</em></h2>
-      <p class="lede reveal" style="--i:2">Real strategy. Real execution. Real results.</p>
-    </div>
-    <div class="profiles">
-      <a href="https://www.instagram.com/ashokdadapandya" target="_blank" rel="noopener" class="profile tilt reveal">
-        <img class="pfp" src="/assets/opt/ig-ashok.webp" alt="" width="80" height="80" loading="lazy">
-        <h3>Ashok Dada Pandya</h3>
-        <span class="handle"><svg class="i-solid" width="14" height="14"><use href="#i-ig"/></svg>@ashokdadapandya</span>
-        <span class="go">View Profile <svg class="i" width="16" height="16"><use href="#i-arrow"/></svg></span>
-      </a>
-      <a href="https://www.instagram.com/navdurga_garba" target="_blank" rel="noopener" class="profile tilt reveal" style="--i:1">
-        <img class="pfp" src="/assets/opt/ig-navdurga.webp" alt="" width="80" height="80" loading="lazy">
-        <h3>Navdurga Garba</h3>
-        <span class="handle"><svg class="i-solid" width="14" height="14"><use href="#i-ig"/></svg>@navdurga_garba</span>
-        <span class="go">View Profile <svg class="i" width="16" height="16"><use href="#i-arrow"/></svg></span>
-      </a>
-      <a href="https://www.instagram.com/mamatawomenshospital" target="_blank" rel="noopener" class="profile tilt reveal" style="--i:2">
-        <img class="pfp" src="/assets/opt/ig-mamata.webp" alt="" width="80" height="80" loading="lazy">
-        <h3>Mamata Women's Hospital</h3>
-        <span class="handle"><svg class="i-solid" width="14" height="14"><use href="#i-ig"/></svg>@mamatawomenshospital</span>
-        <span class="go">View Profile <svg class="i" width="16" height="16"><use href="#i-arrow"/></svg></span>
-      </a>
-      <a href="https://www.instagram.com/school_guruglobal" target="_blank" rel="noopener" class="profile tilt reveal" style="--i:3">
-        <img class="pfp" src="/assets/opt/ig-guru.webp" alt="" width="80" height="80" loading="lazy">
-        <h3>Guru Global Preschool</h3>
-        <span class="handle"><svg class="i-solid" width="14" height="14"><use href="#i-ig"/></svg>@school_guruglobal</span>
-        <span class="go">View Profile <svg class="i" width="16" height="16"><use href="#i-arrow"/></svg></span>
-      </a>
-    </div>
-
-  </div>
-</section>
-
-<section id="social-embeds">
-  <div class="wrap">
-    <div class="head">
-      <p class="eyebrow reveal">Community</p>
-      <h2 class="h2" data-split>Connect with us on <em>Social Media.</em></h2>
-      <p class="lede reveal" style="--i:2">Stay updated with our latest insights, case studies, and behind-the-scenes content.</p>
-    </div>
-    <div class="profiles profiles-3">
-      <a href="https://instagram.com/spacegrowmedia" target="_blank" rel="noopener" class="profile tilt reveal">
-        <img class="pfp" src="/assets/opt/logo.webp" alt="" width="80" height="80" loading="lazy">
-        <h3>SpaceGrow Media</h3>
-        <span class="handle"><svg class="i-solid" width="14" height="14"><use href="#i-ig"/></svg>@spacegrowmedia</span>
-        <span class="go">View Profile <svg class="i" width="16" height="16"><use href="#i-arrow"/></svg></span>
-      </a>
-      <a href="https://www.linkedin.com/company/spacegrow-media/" target="_blank" rel="noopener" class="profile tilt reveal" style="--i:1">
-        <img class="pfp" src="/assets/opt/logo.webp" alt="" width="80" height="80" loading="lazy">
-        <h3>SpaceGrow Media</h3>
-        <span class="handle"><svg class="i-solid" width="14" height="14"><use href="#i-in"/></svg>LinkedIn Page</span>
-        <span class="go">View Profile <svg class="i" width="16" height="16"><use href="#i-arrow"/></svg></span>
-      </a>
-      <a href="https://www.facebook.com/share/1CkVVa8vD4/" target="_blank" rel="noopener" class="profile tilt reveal" style="--i:2">
-        <img class="pfp" src="/assets/opt/logo.webp" alt="" width="80" height="80" loading="lazy">
-        <h3>SpaceGrow Media</h3>
-        <span class="handle"><svg class="i-solid" width="14" height="14"><use href="#i-fb"/></svg>Facebook Page</span>
-        <span class="go">View Page <svg class="i" width="16" height="16"><use href="#i-arrow"/></svg></span>
-      </a>
-    </div>
-  </div>
-</section>
-
-<section id="case-studies" data-scene="4">
-  <div class="wrap">
-    <div class="head">
-      <p class="eyebrow reveal">Case Studies</p>
-      <h2 class="h2" data-split>Real brands. <em>Real results.</em></h2>
-      <p class="lede reveal" style="--i:2">Download detailed PDF case studies — see the strategy, execution, and outcomes for each client.</p>
-    </div>
-    <div class="cases">
-      <article class="case tilt reveal">
-        <div class="case-top"><img src="/assets/opt/ig-ashok.webp" alt="" width="56" height="56" loading="lazy"><span class="badge">Personal Brand</span></div>
-        <h3>Ashok Dada Pandya</h3>
-        <p>In just 3 months, SpaceGrow Media helped Ashok Dada Pandya reach thousands of people through engaging spiritual content, Bhagavad Gita teachings, and yatra promotions. Multiple reels achieved 5K–18.5K+ views, increasing awareness, engagement, and community reach beyond the local audience.</p>
-        <a href="/assets/case_studies/Ashok_Dada_Pandya_Case_Study.pdf" class="link" target="_blank" rel="noopener">Download Case Study <svg class="i" width="16" height="16"><use href="#i-down"/></svg></a>
-      </article>
-      <article class="case tilt reveal" style="--i:1">
-        <div class="case-top"><img src="/assets/opt/ig-mamata.webp" alt="" width="56" height="56" loading="lazy"><span class="badge">Healthcare</span></div>
-        <h3>Mamata Women's Hospital</h3>
-        <p>Healthcare branding with educational reels and trust-building content — positioning a Mira Road gynecology clinic as the go-to specialist through consistent, credible social presence.</p>
-        <a href="/assets/case_studies/Mamata_Womens_Hospital_Case_Study.pdf" class="link" target="_blank" rel="noopener">Download Case Study <svg class="i" width="16" height="16"><use href="#i-down"/></svg></a>
-      </article>
-      <article class="case tilt reveal">
-        <div class="case-top"><img src="/assets/opt/ig-navdurga.webp" alt="" width="56" height="56" loading="lazy"><span class="badge">Event</span></div>
-        <h3>Navdurga Garba</h3>
-        <p>Event promotion using high-reach creatives and a campaign-style content plan — driving awareness, registrations, and ticket interest through organic content across Instagram.</p>
-        <a href="/assets/case_studies/Navdurga_Case_Study.pdf" class="link" target="_blank" rel="noopener">Download Case Study <svg class="i" width="16" height="16"><use href="#i-down"/></svg></a>
-      </article>
-      <article class="case tilt reveal" style="--i:1">
-        <div class="case-top"><img src="/assets/opt/ig-guru.webp" alt="" width="56" height="56" loading="lazy"><span class="badge">Education</span></div>
-        <h3>Guru Global Preschool</h3>
-        <p>We are managing Guru Global Preschool’s complete digital presence, including content planning, social media management, reel creation, shoot coordination, graphic design, and Meta Ads. Through consistent and engaging content, we helped increase brand awareness, connect with more parents, and strengthen the preschool’s online presence.</p>
-        <span class="link off">Case Study Coming Soon</span>
-      </article>
-    </div>
-  </div>
-</section>
-
-<section id="why" data-scene="5">
-  <div class="wrap">
-    <div class="head">
-      <p class="eyebrow reveal">Why SpaceGrow</p>
-      <h2 class="h2" data-split>Why brands choose us over <em>bigger agencies.</em></h2>
-    </div>
-    <div class="why">
-      <article class="why-card reveal"><span class="card-ico"><svg class="i"><use href="#i-user"/></svg></span><div><h3>You Work Directly With the Founder</h3><p>No junior account managers. No handoffs. When you message SpaceGrow, you talk to Yash — the person who actually does the work.</p></div></article>
-      <article class="why-card reveal" style="--i:1"><span class="card-ico"><svg class="i"><use href="#i-target"/></svg></span><div><h3>We Understand Your Niche</h3><p>We don't do generic content. We specialise in healthcare, wellness, and education — brands that need trust, credibility, and warmth in every post.</p></div></article>
-      <article class="why-card reveal"><span class="card-ico"><svg class="i"><use href="#i-check"/></svg></span><div><h3>Nothing Goes Live Without Your Approval</h3><p>Every piece of content is sent to you first. You review, give feedback, we refine. Two revision rounds per deliverable — always.</p></div></article>
-      <article class="why-card reveal" style="--i:1"><span class="card-ico"><svg class="i"><use href="#i-bars"/></svg></span><div><h3>Monthly Reports — Not Guesses</h3><p>Every month you get a clear performance report — reach, engagement, follower growth, and specific recommendations for the next month.</p></div></article>
-    </div>
-  </div>
-</section>
-
-<section id="testimonials">
-  <div class="wrap">
-    <div class="head">
-      <p class="eyebrow reveal">Testimonials</p>
-      <h2 class="h2" data-split>What our clients <em>say.</em></h2>
-    </div>
-    <div class="quotes">
-      <figure class="quote reveal"><blockquote>SpaceGrow didn't just give us posts; they gave us a complete growth strategy. Our lead generation increased by 300% within the first two months, and the content is unmatched.</blockquote><figcaption><b>Dr. Maheshweta Guru Mehta</b><span>Mamata Women's Hospital</span></figcaption></figure>
-      <figure class="quote reveal" style="--i:1"><blockquote>SpaceGrow Media helped us connect with more parents and build trust in our community. Their creative content and consistent social media management increased inquiries and admissions significantly. We highly recommend their team for any preschool looking to grow its presence online.</blockquote><figcaption><b>Director</b><span>Guru Global Preschool</span></figcaption></figure>
-      <figure class="quote reveal"><blockquote>Working directly with the founder makes all the difference. Fast communication, zero confusion, and premium design work. Highly recommend SpaceGrow Media.</blockquote><figcaption><b>Director of Marketing</b><span>Navdurga Events</span></figcaption></figure>
-      <figure class="quote reveal" style="--i:1"><blockquote>SpaceGrow Media helped us transform our social media presence and reach thousands of devotees through engaging reels and professional content strategy. Our video views increased significantly, audience engagement grew consistently, and our message now reaches people far beyond our local community.</blockquote><figcaption><b>Ashok Dada Pandya</b><span>Spiritual Speaker &amp; Social Leader</span></figcaption></figure>
-    </div>
   </div>
 </section>
 
@@ -506,24 +500,7 @@
   </div>
 </section>
 
-<section id="addons">
-  <div class="wrap">
-    <div class="head">
-      <p class="eyebrow reveal">Add-Ons</p>
-      <h2 class="h2" data-split>Optional upgrades you can <em>add anytime.</em></h2>
-    </div>
-    <div class="addons">
-      <article class="addon reveal"><span class="card-ico"><svg class="i"><use href="#i-doc"/></svg></span><div><h3>One-Time Setup</h3><p>Audit + tracking sheet + WhatsApp quick replies + baseline creatives to start strong from Day 1.</p></div></article>
-      <article class="addon reveal" style="--i:1"><span class="card-ico"><svg class="i"><use href="#i-web"/></svg></span><div><h3>Website Development</h3><p>Static 4–5 page site or a lead-capture page with WhatsApp buttons and contact forms.</p></div></article>
-      <article class="addon reveal" style="--i:2"><span class="card-ico"><svg class="i"><use href="#i-pal"/></svg></span><div><h3>Branding Kit</h3><p>Colors, fonts, and Canva templates for posts and stories — so your brand always looks consistent.</p></div></article>
-      <article class="addon reveal"><span class="card-ico"><svg class="i"><use href="#i-chat"/></svg></span><div><h3>WhatsApp Automation</h3><p>Automated reply flows for your business WhatsApp. Custom scope — priced per project.</p></div></article>
-      <article class="addon reveal" style="--i:1"><span class="card-ico"><svg class="i"><use href="#i-cam"/></svg></span><div><h3>Shoot Planning</h3><p>We plan and coordinate content shoots for your brand. Visit-based, priced separately.</p></div></article>
-      <article class="addon reveal" style="--i:2"><span class="card-ico"><svg class="i"><use href="#i-bars"/></svg></span><div><h3>Analytics Report</h3><p>Detailed monthly PDF with reach, engagement, growth, and next-month recommendations.</p></div></article>
-    </div>
-  </div>
-</section>
-
-<section id="faq">
+<section id="faq" data-scene="5">
   <div class="wrap faq">
     <div class="faq-head">
       <p class="eyebrow reveal">FAQ</p>
@@ -569,6 +546,35 @@
         </select><span class="err"></span></div>
       <button type="submit" class="btn btn-primary magnetic" id="send"><span>Send via WhatsApp</span><svg class="i" width="18" height="18"><use href="#i-arrow"/></svg></button>
     </form>
+  </div>
+</section>
+<section id="social-embeds">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow reveal">Community</p>
+      <h2 class="h2" data-split>Connect with us on <em>Social Media.</em></h2>
+      <p class="lede reveal" style="--i:2">Stay updated with our latest insights, case studies, and behind-the-scenes content.</p>
+    </div>
+    <div class="profiles profiles-3">
+      <a href="https://instagram.com/spacegrowmedia" target="_blank" rel="noopener" class="profile tilt reveal">
+        <img class="pfp" src="/assets/opt/logo.webp" alt="" width="80" height="80" loading="lazy">
+        <h3>SpaceGrow Media</h3>
+        <span class="handle"><svg class="i-solid" width="14" height="14"><use href="#i-ig"/></svg>@spacegrowmedia</span>
+        <span class="go">View Profile <svg class="i" width="16" height="16"><use href="#i-arrow"/></svg></span>
+      </a>
+      <a href="https://www.linkedin.com/company/spacegrow-media/" target="_blank" rel="noopener" class="profile profile-in tilt reveal" style="--i:1">
+        <img class="pfp" src="/assets/opt/logo.webp" alt="" width="80" height="80" loading="lazy">
+        <h3>SpaceGrow Media</h3>
+        <span class="handle"><svg class="i-solid" width="14" height="14"><use href="#i-in"/></svg>LinkedIn Page</span>
+        <span class="go">View Profile <svg class="i" width="16" height="16"><use href="#i-arrow"/></svg></span>
+      </a>
+      <a href="https://www.facebook.com/share/1CkVVa8vD4/" target="_blank" rel="noopener" class="profile profile-fb tilt reveal" style="--i:2">
+        <img class="pfp" src="/assets/opt/logo.webp" alt="" width="80" height="80" loading="lazy">
+        <h3>SpaceGrow Media</h3>
+        <span class="handle"><svg class="i-solid" width="14" height="14"><use href="#i-fb"/></svg>Facebook Page</span>
+        <span class="go">View Page <svg class="i" width="16" height="16"><use href="#i-arrow"/></svg></span>
+      </a>
+    </div>
   </div>
 </section>
 </main>

@@ -109,11 +109,12 @@ function startReveals() {
 
 /* ───────── 3D scene: starts loading during the intro so Earth is ready when it ends ───────── */
 let scenePromise = null;
+let universe = null;
 function bootScene() {
   if (scenePromise) return scenePromise;
   scenePromise = import('./scene.js')
     .then((m) => m.initScene())
-    .then((u) => { if (u) $('space-canvas').classList.add('on'); return u; })
+    .then((u) => { if (u) { universe = u; $('space-canvas').classList.add('on'); } return u; })
     .catch((e) => console.warn('3D scene failed:', e));
   return scenePromise;
 }
@@ -212,16 +213,12 @@ function runIntro() {
 /* ───────── Navigation ───────── */
 function initNav() {
   const nav = $('nav'), bar = $('progress');
-  let last = 0;
   onScroll((y) => {
     const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
     bar.style.setProperty('--p', (y / max).toFixed(4));
     nav.classList.toggle('scrolled', y > 40);
-    const menuOpen = $('mob-menu').classList.contains('open');
-    if (!menuOpen) nav.classList.toggle('away', y > last + 2 && y > 400);
-    if (y < last - 2) nav.classList.remove('away');
-    last = y;
     $('wa-float').classList.toggle('show', y > innerHeight * 0.7);
+    $('explore-toggle').classList.toggle('show', y > innerHeight * 0.7);
   });
 
   const links = $$('.nav-links a');
@@ -373,7 +370,77 @@ function initAnalytics() {
   $$('.depth').forEach((m) => depth.observe(m));
 }
 
+/* The whole background is touchable: grab a planet to spin it on its axis, drag empty space to look around. */
+const SOLID = 'a, button, input, select, textarea, label, p, h1, h2, h3, li, blockquote, figure, img, .card, .profile, .case, .why-card, .quote, .addon, .step, .faq-list, .cf, .method, .stats, .price, .social, .pill, .badge, .nav, .mob, #wa-float, footer';
+function initSpaceDrag() {
+  let drag = null;
+  const isSpace = (t) => t instanceof Element && !t.closest(SOLID);
+  document.addEventListener('pointerdown', (e) => {
+    if (!universe || e.button > 0 || !(exploring || isSpace(e.target))) return;
+    universe.grab(e.clientX, e.clientY);
+    drag = { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t: performance.now(), touch: e.pointerType === 'touch' };
+    document.documentElement.classList.add('grabbing');
+  });
+  document.addEventListener('pointermove', (e) => {
+    if (!drag) {
+      if (finePointer) document.documentElement.classList.toggle('can-grab', !!universe && isSpace(e.target));
+      return;
+    }
+    const now = performance.now();
+    const dx = e.clientX - drag.x, dy = drag.touch && !exploring ? 0 : e.clientY - drag.y;
+    universe.drag(dx, dy, (now - drag.t) / 1000);
+    drag.x = e.clientX; drag.y = e.clientY; drag.t = now;
+  }, { passive: true });
+  const end = (e) => {
+    if (!drag) return;
+    const click = e && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6;
+    drag = null; universe?.release(); document.documentElement.classList.remove('grabbing');
+    if (click && exploring) { const name = universe.travel(e.clientX, e.clientY); if (name) showHud('Travelling to ' + name); }
+  };
+  document.addEventListener('pointerup', end);
+  document.addEventListener('pointercancel', end);
+  window.addEventListener('blur', end);
+}
+
+/* Explore mode: the site steps aside and space becomes free to fly. */
+let exploring = false;
+let hudTimer = 0;
+function showHud(text) {
+  const t = $('hud-msg');
+  t.textContent = text;
+  t.classList.add('on');
+  clearTimeout(hudTimer);
+  hudTimer = setTimeout(() => t.classList.remove('on'), 2400);
+}
+function setExplore(on) {
+  if (!universe || on === exploring) return;
+  exploring = on;
+  universe.setExplore(on);
+  document.documentElement.classList.toggle('exploring', on);
+  $('explore-toggle').setAttribute('aria-pressed', String(on));
+  $('explore-toggle').querySelector('span').textContent = on ? 'Back to site' : 'Explore space';
+  if (on) { lenis?.stop(); document.body.style.overflow = 'hidden'; } else { lenis?.start(); document.body.style.overflow = ''; }
+  track(on ? 'explore_open' : 'explore_close');
+}
+function initExplore() {
+  $('explore-toggle').addEventListener('click', () => setExplore(!exploring));
+  $('explore-nav').addEventListener('click', () => setExplore(true));
+  const keyName = (e) => (e.key.length === 1 ? e.key.toLowerCase() : e.key);
+  document.addEventListener('keydown', (e) => {
+    if (!exploring) return;
+    if (e.key === 'Escape') { setExplore(false); return; }
+    universe.keys[keyName(e)] = true;
+    universe.keys.Shift = e.shiftKey;
+    if (/^(Arrow|w$|a$|s$|d$|q$|e$| $)/.test(keyName(e))) e.preventDefault();
+  });
+  document.addEventListener('keyup', (e) => { if (universe) { universe.keys[keyName(e)] = false; universe.keys.Shift = e.shiftKey; } });
+  window.addEventListener('wheel', (e) => { if (exploring) { e.preventDefault(); universe.thrust(-e.deltaY * 0.35); } }, { passive: false });
+  window.addEventListener('blur', () => { if (universe) universe.keys = {}; });
+}
+
 $('year').textContent = new Date().getFullYear();
+initExplore();
+initSpaceDrag();
 initNav();
 initPointer();
 initFaq();
