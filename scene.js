@@ -3,7 +3,6 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { Lensflare, LensflareElement } from 'three/addons/objects/Lensflare.js';
 
 /*
   SpaceGrow v3 scene.
@@ -165,11 +164,11 @@ const SUN = {
       float spots = smoothstep(0.55, 0.75, fbm(p * 2.5 + 11.0 + t * 0.004));
       float mu = clamp(dot(vN, vV), 0.0, 1.0);
       float limb = pow(mu, 0.45);
-      vec3 hot = vec3(9.0, 6.4, 3.4), warm = vec3(5.2, 2.1, 0.55), deep = vec3(2.2, 0.5, 0.08);
+      vec3 hot = vec3(2.6, 1.9, 1.15), warm = vec3(1.9, 0.9, 0.32), deep = vec3(0.7, 0.2, 0.05);
       vec3 col = mix(warm, hot, smoothstep(-0.4, 0.6, gran * 0.7 + flow * 0.5));
       col = mix(col, deep, spots * 0.85);
       col *= mix(0.45, 1.0, limb);
-      col += vec3(3.0, 1.0, 0.2) * pow(1.0 - mu, 3.0);
+      col += vec3(0.8, 0.3, 0.08) * pow(1.0 - mu, 3.0);
       gl_FragColor = vec4(col, 1.0);
     }`,
 };
@@ -201,7 +200,7 @@ const CORONA = {
         prom += exp(-d * 60.0) * step(da, 0.22) * life * (0.6 + 0.4 * fbm(vec3(a * 12.0, h * 20.0, t * 0.6)));
       }
       float inside = smoothstep(uR - 0.01, uR + 0.005, r);
-      vec3 col = vec3(1.0, 0.62, 0.28) * corona * 0.55 + vec3(1.0, 0.75, 0.4) * flares * 0.5 + vec3(1.0, 0.42, 0.15) * prom * 1.2;
+      vec3 col = vec3(1.0, 0.62, 0.3) * corona * 0.22 + vec3(1.0, 0.7, 0.4) * flares * 0.18 + vec3(1.0, 0.45, 0.2) * prom * 0.75;
       col *= inside * smoothstep(1.0, 0.7, r) * uFade;
       gl_FragColor = vec4(col, 1.0);
     }`,
@@ -372,22 +371,10 @@ class Universe {
     this.sun.add(this.corona);
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({
       map: glowTexture([[0, 'rgba(255,220,170,0.9)'], [0.2, 'rgba(255,150,70,0.35)'], [0.5, 'rgba(255,90,30,0.08)'], [1, 'rgba(255,60,10,0)']]),
-      blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, color: new THREE.Color(0.7, 0.55, 0.45),
+      blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, color: new THREE.Color(0.32, 0.24, 0.18),
     }));
-    halo.scale.setScalar(R * 6);
+    halo.scale.setScalar(R * 4.2);
     this.sun.add(halo);
-    if (!this.isMobile) {
-      const flare = new Lensflare();
-      const main = glowTexture([[0, 'rgba(255,255,255,1)'], [0.2, 'rgba(255,230,190,0.5)'], [1, 'rgba(255,200,150,0)']], 256);
-      const ring = glowTexture([[0, 'rgba(120,170,255,0)'], [0.7, 'rgba(120,170,255,0)'], [0.85, 'rgba(140,190,255,0.35)'], [1, 'rgba(120,170,255,0)']], 256);
-      const dot = glowTexture([[0, 'rgba(160,140,255,0.5)'], [1, 'rgba(160,140,255,0)']], 128);
-      flare.addElement(new LensflareElement(main, 220, 0, new THREE.Color(0.6, 0.5, 0.45)));
-      flare.addElement(new LensflareElement(dot, 60, 0.5));
-      flare.addElement(new LensflareElement(ring, 160, 0.7));
-      flare.addElement(new LensflareElement(dot, 90, 0.9));
-      flare.addElement(new LensflareElement(ring, 260, 1.1));
-      this.sun.add(flare);
-    }
     this.scene.add(this.sun);
   }
 
@@ -531,8 +518,8 @@ class Universe {
         ];
     // Finale: turn toward the sun, keeping it right of centre.
     const last = k[k.length - 1];
-    const dir = SUN_DIR.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), portrait ? 0.0 : 0.2);
-    if (portrait) dir.y -= 0.12;
+    const dir = SUN_DIR.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), portrait ? 0.0 : 0.36);
+    dir.y -= portrait ? 0.2 : 0.17;
     last[1] = new THREE.Vector3(...last[0]).addScaledVector(dir, 300).toArray();
     this.posCurve = new THREE.CatmullRomCurve3(k.map((x) => new THREE.Vector3(...x[0])), false, 'centripetal');
     this.lookCurve = new THREE.CatmullRomCurve3(k.map((x) => new THREE.Vector3(...x[1])), false, 'centripetal');
@@ -614,6 +601,7 @@ class Universe {
     this.corona.quaternion.copy(cam.quaternion);
     const sunNear = THREE.MathUtils.clamp(1 - (cam.position.distanceTo(this.sun.position) - 700) / 500, 0, 1);
     this.coronaMat.uniforms.uFade.value = sunNear;
+    this.sun.visible = sunNear > 0.01;
     this.coronaMat.uniforms.uTime.value = this.time;
     if (this.bloom) this.bloom.strength = 0.55 + surge * 0.35;
     this.starMat.uniforms.uTime.value = this.time;

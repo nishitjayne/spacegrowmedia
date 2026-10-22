@@ -71,7 +71,8 @@ section { position: relative; padding-block: clamp(5rem, 11vw, 9rem); }
 .eyebrow::before { content: ""; width: 28px; height: 1px; background: var(--grad); }
 .h2 { font: 400 clamp(2rem, 4.2vw, 3.5rem)/1.08 var(--f-display); letter-spacing: -0.035em; margin-bottom: 1.4rem; text-wrap: balance; max-width: 20ch; }
 em, .serif { font-family: var(--f-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
-.h2 em, .hero-h1 em { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: 0.06em; }
+.h2 em, .hero-h1 em { color: #8fb4ff; padding-right: 0.06em; }
+.h2 em .wi, .hero-h1 em .wi, .h2 em:not(:has(.wi)), .hero-h1 em:not(:has(.wi)) { background: var(--grad); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: 0.06em; }
 .lede { max-width: 60ch; color: var(--muted); font-size: 1.1rem; }
 .head { margin-bottom: clamp(2.5rem, 6vw, 4.5rem); }
 
