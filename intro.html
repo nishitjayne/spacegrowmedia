@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpaceGrow Media - Logo intro</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { display: grid; place-items: center; overflow: hidden; background: #04030c; color: #fff; font-family: 'Saira', system-ui, sans-serif; }
+  canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
+  svg { position: relative; width: min(94vw, 1100px); height: auto; overflow: visible; }
+  .word { font-family: 'Saira', sans-serif; font-weight: 500; letter-spacing: 0; }
+  .tag { font-family: 'Saira', sans-serif; font-weight: 400; letter-spacing: 0.16em; }
+  .controls { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; }
+  .controls button { height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.05); color: #eef1f7; font: 500 14px/1 system-ui, sans-serif; cursor: pointer; transition: background-color .3s, border-color .3s; }
+  .controls button:hover { background: rgba(255,255,255,0.1); border-color: rgba(94,231,255,.6); }
+  .note { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); font: 500 13px/1.4 system-ui, sans-serif; color: rgba(238,241,247,.7); letter-spacing: .04em; text-align: center; }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<p class="note">Logo intro preview. The final frame is the SpaceGrow Media logo.</p>
+
+<svg id="logo" viewBox="80 220 860 530" role="img" aria-label="SpaceGrow Media, Marketing Agency">
+  <defs>
+    <linearGradient id="gRing" x1="140" y1="330" x2="470" y2="690" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#16c8ff"/><stop offset=".5" stop-color="#3a63ff"/><stop offset="1" stop-color="#8a3dff"/>
+    </linearGradient>
+    <linearGradient id="gBottom" x1="210" y1="640" x2="392" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7b35f2"/><stop offset="1" stop-color="#3e5cff"/>
+    </linearGradient>
+    <linearGradient id="gMiddle" x1="226" y1="446" x2="392" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1c9bff"/><stop offset=".55" stop-color="#29e0ff"/><stop offset="1" stop-color="#1aa7ff"/>
+    </linearGradient>
+    <linearGradient id="gTop" x1="226" y1="446" x2="424" y2="338" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22d2ff"/><stop offset=".6" stop-color="#2f6dff"/><stop offset="1" stop-color="#6a3cff"/>
+    </linearGradient>
+    <linearGradient id="gTrail" x1="424" y1="338" x2="486" y2="290" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6a3cff"/><stop offset="1" stop-color="#a24dff"/>
+    </linearGradient>
+    <linearGradient id="gBar" x1="0" x2="1"><stop offset="0" stop-color="#22c8ff"/><stop offset="1" stop-color="#8a3dff"/></linearGradient>
+    <linearGradient id="gRocket" x1="0" y1="-44" x2="0" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#c58bff"/><stop offset="1" stop-color="#7c3cf0"/></linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <!-- The ribbon is revealed by a thick stroke that follows the rocket. -->
+    <mask id="reveal" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <path id="revealPath" d="M 210,640 L 392,512 L 226,446 L 424,338 L 486,290" fill="none" stroke="#fff" stroke-width="90" stroke-linejoin="miter" stroke-miterlimit="10"/>
+    </mask>
+  </defs>
+
+  <!-- Ring: open at top-right for the rocket and bottom-left for the pixels -->
+  <g filter="url(#soft)" fill="none" stroke="url(#gRing)" stroke-width="9" stroke-linecap="round">
+    <path id="arcA" d="M 468.3,423.1 A 185 185 0 0 1 163.3,629.0"/>
+    <path id="arcB" d="M 131.2,573.3 A 185 185 0 0 1 352.9,331.3"/>
+  </g>
+
+  <!-- Pixel burst -->
+  <g id="pixels" fill="#8e3cff">
+    <rect x="104" y="612" width="18" height="18"/><rect x="140" y="598" width="20" height="20" fill="#7b3cff"/>
+    <rect x="172" y="584" width="14" height="14" fill="#9b4dff"/><rect x="126" y="640" width="14" height="14" fill="#6d36f0"/>
+    <rect x="160" y="628" width="22" height="22" fill="#8a3dff"/><rect x="190" y="612" width="12" height="12" fill="#a35bff"/>
+    <rect x="106" y="672" width="18" height="18" fill="#7136ee"/><rect x="146" y="680" width="12" height="12" fill="#9a4cff"/>
+    <rect x="198" y="656" width="18" height="18" fill="#8640fb"/>
+  </g>
+
+  <!-- The S ribbon, three folds plus the trail -->
+  <g mask="url(#reveal)" filter="url(#glow)">
+    <!-- one mitred ribbon for clean folds, each band recoloured on top -->
+    <polyline points="210,640 392,512 226,446 424,338" fill="none" stroke="#2f7bff" stroke-width="46" stroke-linejoin="bevel"/>
+    <line x1="210" y1="640" x2="392" y2="512" stroke="url(#gBottom)" stroke-width="46"/>
+    <line x1="392" y1="512" x2="226" y2="446" stroke="url(#gMiddle)" stroke-width="46"/>
+    <line x1="226" y1="446" x2="424" y2="338" stroke="url(#gTop)" stroke-width="46"/>
+    <polygon points="410.5,320.6 482.9,286 489.1,294 437.5,355.4" fill="url(#gTrail)"/>
+  </g>
+
+  <!-- Rocket: drawn pointing up, positioned along the path by script -->
+  <g id="rocket" transform="translate(486,290) rotate(42) scale(0.86)" filter="url(#soft)">
+    <path id="flame" d="M -7,22 Q 0,52 7,22 Z" fill="#5ee7ff" opacity="0"/>
+    <path d="M 0,-44 C 14,-30 15,-6 11,20 L -11,20 C -15,-6 -14,-30 0,-44 Z" fill="url(#gRocket)"/>
+    <path d="M -11,6 L -24,24 L -10,20 Z M 11,6 L 24,24 L 10,20 Z" fill="#7b35f2"/>
+    <circle cx="0" cy="-14" r="5.5" fill="#1a0f3d" stroke="#d6b6ff" stroke-width="2"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g id="words">
+    <text class="word w1" x="548" y="418" font-size="98" fill="#ffffff">Space</text>
+    <text class="word w2" x="548" y="522" font-size="98" fill="#1aa3ff">Grow</text>
+    <text class="word w3" x="548" y="626" font-size="98" fill="#8b3dff">Media</text>
+    <text class="tag" x="551" y="686" font-size="25" fill="#e8ecf6">MARKETING AGENCY</text>
+    <rect id="bar" x="551" y="712" width="198" height="3" rx="1.5" fill="url(#gBar)"/>
+  </g>
+</svg>
+
+<div class="controls"><button type="button" id="replay">Replay</button><button type="button" id="slow">Play slow</button></div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Starfield behind the logo */
+  const cv = $('stars'), cx = cv.getContext('2d');
+  let stars = [];
+  const fit = () => {
+    const d = Math.min(devicePixelRatio, 2);
+    cv.width = innerWidth * d; cv.height = innerHeight * d; cx.setTransform(d, 0, 0, d, 0, 0);
+    stars = Array.from({ length: 380 }, () => ({ x: Math.random() * innerWidth, y: Math.random() * innerHeight, z: Math.random(), o: Math.random() * 6.28 }));
+  };
+  fit(); addEventListener('resize', fit);
+  (function sky(t) {
+    cx.fillStyle = '#04030c'; cx.fillRect(0, 0, innerWidth, innerHeight);
+    const g = cx.createRadialGradient(innerWidth * 0.4, innerHeight * 0.5, 0, innerWidth * 0.4, innerHeight * 0.5, Math.max(innerWidth, innerHeight) * 0.6);
+    g.addColorStop(0, 'rgba(70,60,200,0.10)'); g.addColorStop(1, 'transparent');
+    cx.fillStyle = g; cx.fillRect(0, 0, innerWidth, innerHeight);
+    for (const s of stars) {
+      cx.fillStyle = `rgba(230,236,255,${(0.2 + s.z * 0.6) * (0.75 + 0.25 * Math.sin(t / 900 + s.o))})`;
+      cx.beginPath(); cx.arc(s.x, s.y, 0.4 + s.z * 1.1, 0, 6.283); cx.fill();
+    }
+    requestAnimationFrame(sky);
+  })(0);
+
+  /* Timeline */
+  const ease = { out: (t) => 1 - Math.pow(1 - t, 3), inOut: (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2), back: (t) => 1 + 2.2 * Math.pow(t - 1, 3) + 1.2 * Math.pow(t - 1, 2) };
+  const clamp01 = (v) => Math.max(0, Math.min(1, v));
+  const span = (t, a, b) => clamp01((t - a) / (b - a));
+
+  const arcs = [$('arcA'), $('arcB')].map((p) => ({ p, len: p.getTotalLength() }));
+  const reveal = $('revealPath'), revLen = reveal.getTotalLength();
+  const rocket = $('rocket'), flame = $('flame');
+  const pixels = [...$('pixels').children].map((r) => {
+    const x = +r.getAttribute('x'), y = +r.getAttribute('y');
+    return { r, x, y, dx: (Math.random() - 0.3) * 260, dy: (Math.random() - 0.5) * 220, rot: (Math.random() - 0.5) * 240, d: Math.random() * 0.25 };
+  });
+  const words = [...document.querySelectorAll('#words text')];
+  const bar = $('bar');
+  const FINAL_ANGLE = 42;
+  let angle = 0, start = 0, speed = 1;
+
+  function frame(now) {
+    const t = ((now - start) / 1000) * speed;            // seconds into the intro
+    // 0.0-1.4 s: ring draws in from both ends
+    const ring = ease.inOut(span(t, 0, 1.4));
+    arcs.forEach(({ p, len }) => { p.style.strokeDasharray = len; p.style.strokeDashoffset = len * (1 - ring); });
+    // 0.6-1.6 s: pixels burst into place
+    for (const px of pixels) {
+      const k = ease.back(span(t, 0.6 + px.d, 1.4 + px.d));
+      px.r.setAttribute('transform', `translate(${px.dx * (1 - k)} ${px.dy * (1 - k)}) rotate(${px.rot * (1 - k)} ${px.x + 8} ${px.y + 8})`);
+      px.r.style.opacity = span(t, 0.6 + px.d, 0.9 + px.d);
+    }
+    // 1.2-3.6 s: rocket lays the ribbon along the S, then climbs its trail
+    const fly = ease.inOut(span(t, 1.2, 3.6));
+    const d = fly * revLen;
+    reveal.style.strokeDasharray = revLen;
+    reveal.style.strokeDashoffset = revLen - d;
+    const pt = reveal.getPointAtLength(Math.max(d, 0.01));
+    const ahead = reveal.getPointAtLength(Math.min(d + 6, revLen));
+    let target = (Math.atan2(ahead.y - pt.y, ahead.x - pt.x) * 180) / Math.PI + 90;
+    if (fly >= 0.999) target = FINAL_ANGLE;
+    if (t < 1.25) angle = target;
+    let diff = ((target - angle + 540) % 360) - 180;
+    angle += diff * 0.22;
+    if (t > 3.6) angle += (FINAL_ANGLE - angle) * 0.2;
+    rocket.setAttribute('transform', `translate(${pt.x.toFixed(2)},${pt.y.toFixed(2)}) rotate(${angle.toFixed(2)}) scale(0.86)`);
+    rocket.style.opacity = span(t, 1.1, 1.3);
+    flame.style.opacity = t > 1.2 && t < 3.7 ? 0.9 : Math.max(0, 0.9 - (t - 3.7) * 2);
+    flame.setAttribute('transform', `scale(1, ${0.8 + Math.random() * 0.5})`);
+    // 3.2-4.4 s: wordmark rises in, tag and underline settle
+    words.forEach((w, i) => {
+      const k = ease.out(span(t, 3.2 + i * 0.14, 4.0 + i * 0.14));
+      w.style.opacity = k;
+      w.setAttribute('transform', `translate(0 ${(1 - k) * 26})`);
+      if (w.classList.contains('tag')) w.style.letterSpacing = `${0.16 + (1 - k) * 0.5}em`;
+    });
+    bar.setAttribute('width', 198 * ease.out(span(t, 3.9, 4.6)));
+    if (t < 4.8) requestAnimationFrame(frame);
+    else finish();
+  }
+
+  function finish() {
+    arcs.forEach(({ p }) => { p.style.strokeDashoffset = 0; });
+    reveal.style.strokeDashoffset = 0;
+    pixels.forEach((px) => { px.r.removeAttribute('transform'); px.r.style.opacity = 1; });
+    rocket.setAttribute('transform', `translate(486,290) rotate(${FINAL_ANGLE}) scale(0.86)`);
+    rocket.style.opacity = 1; flame.style.opacity = 0;
+    words.forEach((w) => { w.style.opacity = 1; w.removeAttribute('transform'); if (w.classList.contains('tag')) w.style.letterSpacing = ''; });
+    bar.setAttribute('width', 198);
+  }
+
+  function play(s = 1) {
+    speed = s;
+    start = performance.now();
+    if (reduce) { finish(); return; }
+    requestAnimationFrame(frame);
+  }
+  $('replay').addEventListener('click', () => play(1));
+  $('slow').addEventListener('click', () => play(0.35));
+  document.fonts.ready.then(() => play(1));
+})();
+</script>
+</body>
+</html>

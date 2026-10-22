@@ -150,10 +150,22 @@
 <div class="vignette" aria-hidden="true"></div>
 <div class="cursor-glow" id="cursor-glow" aria-hidden="true"></div>
 <div class="labels" id="labels" aria-hidden="true"></div>
+<div class="jump-flash" id="jump-flash" aria-hidden="true"></div>
 <button type="button" class="explore-btn" id="explore-toggle" aria-pressed="false"><svg class="i" width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>Explore space</span></button>
 <div class="explore-hud" aria-live="polite">
-  <p class="hud-keys"><b>Drag</b> look around <i></i> <b>W A S D</b> fly <i></i> <b>Shift</b> boost <i></i> <b>Click</b> a planet to travel <i></i> <b>Esc</b> back to site</p>
+  <div class="crosshair" aria-hidden="true"></div>
+  <section class="hud-panel hud-info" id="hud-info" aria-label="Destination facts">
+    <p class="hud-kind" id="hud-kind"></p>
+    <h2 class="hud-name" id="hud-name"></h2>
+    <dl class="hud-facts" id="hud-facts"></dl>
+  </section>
+  <div class="hud-panel hud-tele"><span>Distance from the Sun</span><b id="tele-au">1.00 AU</b><small id="tele-light">8.3 light-minutes</small></div>
   <p class="hud-msg" id="hud-msg"></p>
+  <p class="hud-keys" id="hud-keys"><b>Mouse</b> point to steer <b>W A S D</b> fly <b>Shift</b> boost <b>Click</b> a planet to travel <b>Esc</b> back to site</p>
+  <nav class="hud-bodies" aria-label="Travel to">
+    <button type="button" data-go="overview" style="--c:#5ee7ff">Overview</button><button type="button" data-go="Sun" style="--c:#ffb347">Sun</button><button type="button" data-go="Mercury" style="--c:#a9a29a">Mercury</button><button type="button" data-go="Venus" style="--c:#e8c98c">Venus</button><button type="button" data-go="Earth" style="--c:#4c9cff">Earth</button><button type="button" data-go="Moon" style="--c:#cfcfcf">Moon</button><button type="button" data-go="Mars" style="--c:#e2673b">Mars</button><button type="button" data-go="Jupiter" style="--c:#d9a774">Jupiter</button><button type="button" data-go="Saturn" style="--c:#e6d29c">Saturn</button><button type="button" data-go="Uranus" style="--c:#9fe3e8">Uranus</button><button type="button" data-go="Neptune" style="--c:#5277ff">Neptune</button>
+  </nav>
+  <button type="button" class="hud-help" id="hud-help" aria-label="Show controls">?</button>
 </div>
 
 <!-- INTRO -->
@@ -225,6 +237,7 @@
     <a href="#contact" style="--i:5">Contact</a>
   </nav>
   <a href="https://wa.me/919987272788" class="btn btn-primary" target="_blank" rel="noopener" style="--i:6"><span>Get Free Audit</span></a>
+  <button type="button" class="btn btn-ghost" id="explore-mob" style="--i:7"><span>Explore space</span></button>
 </div>
 
 <main>
@@ -592,7 +605,7 @@
     </div>
     <div class="wordmark" aria-hidden="true">SpaceGrow</div>
     <div class="foot-bottom">
-      <span>&copy; 2025–<span id="year">2026</span> SpaceGrow Media</span>
+      <span>&copy; 2025–<span id="year">2026</span> SpaceGrow Media · Planet textures: <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noopener">Solar System Scope</a> (CC BY 4.0)</span>
       <nav aria-label="Social"><a href="https://www.instagram.com/spacegrowmedia" target="_blank" rel="noopener">Instagram</a><a href="https://www.linkedin.com/company/spacegrow-media/" target="_blank" rel="noopener">LinkedIn</a><a href="https://wa.me/919987272788" target="_blank" rel="noopener">WhatsApp</a><a href="#hero">Back to top</a></nav>
     </div>
   </div>

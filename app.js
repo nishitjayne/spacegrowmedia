@@ -395,7 +395,7 @@ function initSpaceDrag() {
     if (!drag) return;
     const click = e && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6;
     drag = null; universe?.release(); document.documentElement.classList.remove('grabbing');
-    if (click && exploring) { const name = universe.travel(e.clientX, e.clientY); if (name) showHud('Travelling to ' + name); }
+    if (click && exploring) { const name = universe.travel(e.clientX, e.clientY); if (name) departing(name); }
   };
   document.addEventListener('pointerup', end);
   document.addEventListener('pointercancel', end);
@@ -412,10 +412,52 @@ function showHud(text) {
   clearTimeout(hudTimer);
   hudTimer = setTimeout(() => t.classList.remove('on'), 2400);
 }
+/* Real facts for every destination (NASA planetary fact sheets). */
+const FACTS = {
+  'Solar system': ['Overview', [['Planets', '8'], ['Neptune from the Sun', '30.07 AU'], ['Sunlight to Neptune', '4.2 hours']]],
+  Sun: ['Star, type G2V', [['Diameter', '1,392,700 km'], ['Surface', '5,500 °C'], ['Rotation', '25 days at equator']]],
+  Mercury: ['Planet', [['Diameter', '4,879 km'], ['Day', '58.6 Earth days'], ['Year', '88 days'], ['From the Sun', '0.39 AU']]],
+  Venus: ['Planet', [['Diameter', '12,104 km'], ['Day', '243 days, retrograde'], ['Year', '225 days'], ['From the Sun', '0.72 AU']]],
+  Earth: ['Planet, home', [['Diameter', '12,742 km'], ['Day', '23 h 56 m'], ['Year', '365.25 days'], ['From the Sun', '1.00 AU']]],
+  Moon: ['Moon of Earth', [['Diameter', '3,474 km'], ['Orbit', '27.3 days'], ['From Earth', '384,400 km']]],
+  Mars: ['Planet', [['Diameter', '6,779 km'], ['Day', '24 h 37 m'], ['Year', '687 days'], ['From the Sun', '1.52 AU']]],
+  Jupiter: ['Gas giant', [['Diameter', '139,820 km'], ['Day', '9 h 56 m'], ['Year', '11.86 years'], ['From the Sun', '5.20 AU']]],
+  Saturn: ['Gas giant', [['Diameter', '116,460 km'], ['Day', '10 h 33 m'], ['Year', '29.46 years'], ['From the Sun', '9.54 AU']]],
+  Uranus: ['Ice giant', [['Diameter', '50,724 km'], ['Day', '17 h 14 m, retrograde'], ['Year', '84 years'], ['From the Sun', '19.19 AU']]],
+  Neptune: ['Ice giant', [['Diameter', '49,244 km'], ['Day', '16 h 6 m'], ['Year', '164.8 years'], ['From the Sun', '30.07 AU']]],
+};
+function showInfo(name) {
+  const f = FACTS[name];
+  if (!f) return;
+  $('hud-kind').textContent = f[0];
+  $('hud-name').textContent = name;
+  $('hud-facts').replaceChildren(...f[1].flatMap(([k, v]) => { const dt = document.createElement('dt'); dt.textContent = k; const dd = document.createElement('dd'); dd.textContent = v; return [dt, dd]; }));
+  $('hud-info').classList.add('on');
+  document.querySelectorAll('[data-go]').forEach((b) => b.setAttribute('aria-current', String(b.textContent === name || (name === 'Solar system' && b.dataset.go === 'overview'))));
+}
+function departing(name) { $('hud-info').classList.remove('on'); showHud('Travelling to ' + name); }
+let keysTimer = 0;
+function flashKeys() { const k = $('hud-keys'); k.classList.remove('faded'); clearTimeout(keysTimer); keysTimer = setTimeout(() => k.classList.add('faded'), 6000); }
+let teleTimer = 0;
+function startTelemetry(on) {
+  clearInterval(teleTimer);
+  if (!on) return;
+  teleTimer = setInterval(() => {
+    const t = universe.telemetry();
+    $('tele-au').textContent = t.au.toFixed(2) + ' AU';
+    $('tele-light').textContent = (t.au * 8.317).toFixed(1) + ' light-minutes from the Sun';
+  }, 200);
+}
+
 function setExplore(on) {
   if (!universe || on === exploring) return;
   exploring = on;
   universe.setExplore(on);
+  universe.onArrive = showInfo;
+  startTelemetry(on);
+  if (on) flashKeys(); else $('hud-info').classList.remove('on');
+  const flash = $('jump-flash');
+  flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go');
   document.documentElement.classList.toggle('exploring', on);
   $('explore-toggle').setAttribute('aria-pressed', String(on));
   $('explore-toggle').querySelector('span').textContent = on ? 'Back to site' : 'Explore space';
@@ -425,11 +467,21 @@ function setExplore(on) {
 function initExplore() {
   $('explore-toggle').addEventListener('click', () => setExplore(!exploring));
   $('explore-nav').addEventListener('click', () => setExplore(true));
+  document.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => {
+    const go = b.dataset.go;
+    const name = go === 'overview' ? universe.overview() : universe.travelTo(go);
+    if (name) departing(name);
+  }));
+  $('hud-help').addEventListener('click', () => flashKeys());
+  // Steering pauses while the pointer is over the HUD, so reaching for a button doesn't spin the view.
+  document.addEventListener('pointermove', (e) => { if (universe) universe.steerHold = !!(e.target instanceof Element && e.target.closest('.hud-bodies, .hud-help, .explore-btn, .hud-panel')); }, { passive: true });
+  $('explore-mob').addEventListener('click', () => { $('close-mob').click(); setTimeout(() => setExplore(true), 350); });
   const keyName = (e) => (e.key.length === 1 ? e.key.toLowerCase() : e.key);
   document.addEventListener('keydown', (e) => {
     if (!exploring) return;
     if (e.key === 'Escape') { setExplore(false); return; }
     universe.keys[keyName(e)] = true;
+    if (/^(w|a|s|d|q|e|Arrow)/.test(keyName(e))) $('hud-info').classList.remove('on');
     universe.keys.Shift = e.shiftKey;
     if (/^(Arrow|w$|a$|s$|d$|q$|e$| $)/.test(keyName(e))) e.preventDefault();
   });
