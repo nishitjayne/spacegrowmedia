@@ -1,436 +1,281 @@
-import { initSpaceBackground } from './space-bg.js';
+document.documentElement.classList.add('rv');
 
 const $ = (id) => document.getElementById(id);
-const $$ = (sel) => document.querySelectorAll(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const canHover = matchMedia('(hover: hover) and (pointer: fine)').matches;
+const store = {
+  get: (k) => { try { return sessionStorage.getItem(k); } catch { return null; } },
+  set: (k, v) => { try { sessionStorage.setItem(k, v); } catch { /* private mode */ } },
+};
 
-const cursorDot = $('cd');
-const cursorRing = $('cr');
-let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+/* ───────── Reveal, counters, process steps: start once the intro is gone ───────── */
+function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
 
-const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
-
-if (!isTouchDevice && cursorDot && cursorRing) {
-  document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  });
-
-  (function animateCursor() {
-    cursorDot.style.transform = `translate3d(calc(${mouseX}px - 50%), calc(${mouseY}px - 50%), 0)`;
-    ringX += (mouseX - ringX) * 0.35;
-    ringY += (mouseY - ringY) * 0.35;
-    cursorRing.style.transform = `translate3d(calc(${ringX}px - 50%), calc(${ringY}px - 50%), 0)`;
-    requestAnimationFrame(animateCursor);
-  })();
-}
-
-$$('a,button,.svc-card,.pkg-card,.proj-card,.why-card,.testi-card,.ao-card,.faq-q').forEach((el) => {
-  el.addEventListener('mouseenter', () => document.body.classList.add('hov'));
-  el.addEventListener('mouseleave', () => document.body.classList.remove('hov'));
-});
-
-const introCanvas = $('intro-canvas');
-let introCtx, introStars = [], introTime = 0;
-
-if (introCanvas) {
-  introCtx = introCanvas.getContext('2d');
-
-  function resizeIntroCanvas() {
-    introCanvas.width = innerWidth;
-    introCanvas.height = innerHeight;
-  }
-  resizeIntroCanvas();
-
-  function initIntroStars() {
-    introStars = [];
-    const width = introCanvas.width;
-    const height = introCanvas.height;
-    for (let i = 0; i < 450; i++) {
-      introStars.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        r: Math.random() * 1.2 + 0.15,
-        a: Math.random() * 0.55 + 0.08,
-        ts: Math.random() * 0.02 + 0.005,
-        to: Math.random() * Math.PI * 2,
-      });
-    }
-  }
-  initIntroStars();
-
-  function drawIntroStars() {
-    introTime++;
-    const width = introCanvas.width;
-    const height = introCanvas.height;
-    introCtx.clearRect(0, 0, width, height);
-    introCtx.fillStyle = '#000';
-    introCtx.fillRect(0, 0, width, height);
-
-    const centerGlow = introCtx.createRadialGradient(
-      width / 2, height, 0,
-      width / 2, height * 0.85, width * 0.55
-    );
-    centerGlow.addColorStop(0, 'rgba(0,229,255,.055)');
-    centerGlow.addColorStop(0.5, 'rgba(0,229,255,.015)');
-    centerGlow.addColorStop(1, 'transparent');
-    introCtx.fillStyle = centerGlow;
-    introCtx.fillRect(0, 0, width, height);
-
-    introStars.forEach((star) => {
-      const twinkle = Math.sin(introTime * star.ts + star.to) * 0.38 + 0.62;
-      introCtx.fillStyle = `rgba(255,255,255,${star.a * twinkle})`;
-      introCtx.beginPath();
-      introCtx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-      introCtx.fill();
-    });
-
-    if ($('intro')) requestAnimationFrame(drawIntroStars);
-  }
-  drawIntroStars();
-}
-
-const introScreen = $('intro');
-const logoReveal = $('logo-reveal');
-const mainSite = $('site');
-const trail = $('s-trail');
-const guide = $('s-path-guide');
-const rocket = $('logo-rocket');
-const burstCanvas = $('burst-canvas');
-const ring = $('logo-ring');
-
-if (introScreen && trail && guide && rocket && burstCanvas && ring) {
-  const burstCtx = burstCanvas.getContext('2d');
-  const totalLen = guide.getTotalLength();
-  trail.style.strokeDasharray = totalLen;
-  trail.style.strokeDashoffset = totalLen;
-
-  function easeInOut(x) {
-    return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
-  }
-
-  const IGNITION_X = 108;
-  const IGNITION_Y = 318;
-  const PIXEL_CLUSTER = [
-    { ox: -22, oy: 8, s: 14, c: '#7030e0' },
-    { ox: -10, oy: 16, s: 12, c: '#5020c0' },
-    { ox: -30, oy: -2, s: 10, c: '#a040f0' },
-    { ox: -18, oy: 20, s: 10, c: '#6028d8' },
-    { ox: -38, oy: 8, s: 8, c: '#8020d0' },
-    { ox: -28, oy: 18, s: 8, c: '#4010b0' },
-    { ox: -8, oy: 26, s: 8, c: '#5828cc' },
-    { ox: -44, oy: 0, s: 6, c: '#9030e0' },
-    { ox: -36, oy: 20, s: 6, c: '#3810a8' },
-    { ox: 2, oy: 20, s: 6, c: '#7040f0' },
-    { ox: -50, oy: 10, s: 5, c: '#a050ff' },
-    { ox: -16, oy: 30, s: 5, c: '#6030d0' },
-    { ox: -42, oy: 28, s: 4, c: '#5020b0' },
-    { ox: -24, oy: 34, s: 4, c: '#8040e8' },
-    { ox: 4, oy: 30, s: 4, c: '#4820c0' },
-    { ox: -54, oy: 22, s: 4, c: '#9040f8' },
-  ];
-  let burstAlpha = 0;
-  let burstPhase = 'in';
-
-  function drawPixelCluster() {
-    burstCtx.clearRect(0, 0, burstCanvas.width, burstCanvas.height);
-    if (burstPhase === 'in') {
-      burstAlpha = Math.min(1, burstAlpha + 0.06);
-      if (burstAlpha >= 1) burstPhase = 'hold';
-    }
-    PIXEL_CLUSTER.forEach((pixel) => {
-      burstCtx.globalAlpha = burstAlpha;
-      burstCtx.fillStyle = pixel.c;
-      burstCtx.fillRect(
-        IGNITION_X + pixel.ox - pixel.s / 2,
-        IGNITION_Y + pixel.oy - pixel.s / 2,
-        pixel.s,
-        pixel.s
-      );
-    });
-    burstCtx.globalAlpha = 1;
-    if (burstPhase === 'in') requestAnimationFrame(drawPixelCluster);
-  }
-
-  function triggerBurst() {
-    burstAlpha = 0;
-    burstPhase = 'in';
-    drawPixelCluster();
-  }
-
-  let currentAngle = 0;
-  let isFirstPoint = true;
-
-  function placeRocket(distance) {
-    const point = guide.getPointAtLength(distance);
-    const nextPoint = guide.getPointAtLength(Math.min(distance + 4, totalLen));
-    const targetAngle =
-      (Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * 180) / Math.PI + 90;
-
-    if (isFirstPoint) {
-      currentAngle = targetAngle;
-      isFirstPoint = false;
-    }
-    let angleDiff = targetAngle - currentAngle;
-    if (angleDiff > 180) angleDiff -= 360;
-    if (angleDiff < -180) angleDiff += 360;
-    currentAngle += angleDiff * 0.14;
-
-    rocket.setAttribute(
-      'transform',
-      `translate(${point.x},${point.y}) rotate(${currentAngle})`
-    );
-    trail.style.strokeDashoffset = Math.max(0, totalLen - distance);
-  }
-
-  setTimeout(() => {
-
-    ring.style.transition = 'stroke-dashoffset 1.2s ease-out';
-    ring.style.strokeDashoffset = '0';
-
-    setTimeout(() => triggerBurst(), 350);
-
-    setTimeout(() => {
-      rocket.style.transition = 'opacity 0.15s';
-      rocket.style.opacity = '1';
-      placeRocket(0);
-
-      const FLIGHT_DURATION = 2600;
-      const startTime = performance.now();
-
-      function fly(now) {
-        let progress = Math.min((now - startTime) / FLIGHT_DURATION, 1);
-        placeRocket(easeInOut(progress) * totalLen);
-        if (progress < 1) requestAnimationFrame(fly);
-      }
-      requestAnimationFrame(fly);
-
-      setTimeout(() => {
-        if (logoReveal) logoReveal.classList.add('on');
-      }, 1900);
-
-      setTimeout(() => {
-        if (mainSite) {
-          mainSite.style.display = 'block';
-          requestAnimationFrame(() =>
-            requestAnimationFrame(() => mainSite.classList.add('visible'))
-          );
-        }
-        introScreen.classList.add('exit');
-        setTimeout(() => introScreen.remove(), 900);
-      }, 3900);
-    }, 700);
-  }, 0);
-}
-
-const nav = $('nav');
-if (nav) {
-  window.addEventListener(
-    'scroll',
-    () => nav.classList.toggle('scrolled', scrollY > 60),
-    { passive: true }
-  );
-}
-
-const burger = $('burger');
-const mobMenu = $('mob-menu');
-const closeMob = $('close-mob');
-
-if (burger && mobMenu) {
-  burger.addEventListener('click', () => mobMenu.classList.add('open'));
-}
-if (closeMob && mobMenu) {
-  closeMob.addEventListener('click', () => mobMenu.classList.remove('open'));
-}
-$$('.ml').forEach((link) => {
-  link.addEventListener('click', () => {
-    if (mobMenu) mobMenu.classList.remove('open');
-  });
-});
-
-const observer = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const siblings = [...entry.target.parentElement.querySelectorAll('.fade-up')];
-        const idx = siblings.indexOf(entry.target);
-        setTimeout(() => entry.target.classList.add('in'), idx * 90);
-        observer.unobserve(entry.target);
-      }
-    });
-  },
-  { threshold: 0.12, rootMargin: '0px 0px -50px 0px' }
-);
-$$('.fade-up').forEach((el) => observer.observe(el));
-
-$$('.faq-q').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const item = btn.parentElement;
-    const isOpen = item.classList.contains('open');
-    $$('.faq-item').forEach((faqItem) => faqItem.classList.remove('open'));
-    if (!isOpen) item.classList.add('open');
-  });
-});
-
-function clearFormErrors() {
-  $$('.fg.has-error').forEach((fg) => fg.classList.remove('has-error'));
-}
-
-function showFieldError(inputId, message) {
-  const input = $(inputId);
-  if (!input) return;
-  const fg = input.closest('.fg');
-  if (!fg) return;
-  fg.classList.add('has-error');
-  let errorEl = fg.querySelector('.form-error');
-  if (!errorEl) {
-    errorEl = document.createElement('span');
-    errorEl.className = 'form-error';
-    fg.appendChild(errorEl);
-  }
-  errorEl.textContent = message;
-  errorEl.style.display = 'block';
-}
-
-function handleContactFormSubmit() {
-  clearFormErrors();
-  const name = ($('fn')?.value || '').trim();
-  const business = ($('fb')?.value || '').trim();
-  const industry = ($('fi')?.value || '').trim();
-  const goal = ($('fg2')?.value || '').trim();
-
-  let hasError = false;
-  if (!name) {
-    showFieldError('fn', 'Please enter your name');
-    hasError = true;
-  }
-
-  if (hasError) {
-    const firstError = document.querySelector('.fg.has-error');
-    if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  }
-
-  const message = `Hi SpaceGrow Media!\n\nI'd like a free audit.\n\nName: ${name}\nBusiness: ${business}\nIndustry: ${industry}\nGoal: ${goal}`;
-
-  if (typeof window.gtag === 'function') {
-    window.gtag('event', 'generate_lead', {
-      lead_source: 'website',
-      cta_location: 'contact_form',
-      service_interest: industry || goal || 'not_specified'
-    });
-  }
-
-  window.open(
-    `https://wa.me/919987272788?text=${encodeURIComponent(message)}`,
-    '_blank'
-  );
-}
-
-const contactFormSubmitBtn = document.querySelector('.f-submit');
-if (contactFormSubmitBtn) {
-  contactFormSubmitBtn.addEventListener('click', handleContactFormSubmit);
-}
-
-$$('a[href^="#"]').forEach((anchor) => {
-  anchor.addEventListener('click', (e) => {
-    const href = anchor.getAttribute('href');
-    if (!href || href === '#') return;
-    const target = document.querySelector(href);
-    if (target) {
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth' });
-    }
-  });
-});
-
-$$('.nav-links a, .nav-cta, .mob-menu a, .nav-logo').forEach((btn) => {
-  btn.addEventListener('mousedown', function () {
-    this.classList.remove('morph-active');
-    void this.offsetWidth; 
-    this.classList.add('morph-active');
-    setTimeout(() => this.classList.remove('morph-active'), 600);
-  });
-});
-
-setTimeout(() => {
-  try {
-    initSpaceBackground();
-  } catch (e) {
-    console.warn('Space background initialization failed:', e);
-  }
-}, 3000);
-
-function trackGA4Event(eventName, params = {}) {
-  if (typeof window.gtag !== 'function') {
-    console.warn('GA4 event not sent because gtag is not defined', eventName, params);
-    return;
-  }
-  console.log('Sending GA4 event:', eventName, params);
-  window.gtag('event', eventName, params);
-}
-
-function detectCtaLocation(element) {
-  const sectionMap = {
-    'hero':         'hero_section',
-    'services':     'services_section',
-    'portfolio':    'portfolio_section',
-    'case-studies': 'case_studies_section',
-    'contact':      'contact_section',
-    'about':        'about_section',
-    'faq':          'faq_section',
+function countUp(node) {
+  const target = Number(node.dataset.count);
+  const suffix = node.dataset.suffix || '';
+  if (reduceMotion) { node.textContent = target + suffix; return; }
+  const start = performance.now();
+  const tick = (now) => {
+    const t = Math.min((now - start) / 1100, 1);
+    node.textContent = Math.round(target * easeOut(t)) + suffix;
+    if (t < 1) requestAnimationFrame(tick);
   };
-  for (const [sectionId, label] of Object.entries(sectionMap)) {
-    if (element.closest(`#${sectionId}`)) return label;
-  }
-  if (element.closest('nav')) return 'navigation';
-  if (element.closest('footer')) return 'footer';
-  if (element.id === 'wa-float' || element.closest('#wa-float')) return 'floating_button';
-  return 'unknown';
+  requestAnimationFrame(tick);
 }
 
-function detectSocialPlatform(url) {
-  if (url.includes('instagram.com')) return 'Instagram';
-  if (url.includes('linkedin.com'))  return 'LinkedIn';
-  if (url.includes('facebook.com'))  return 'Facebook';
-  return 'Other';
+function startScrollEffects() {
+  const reveal = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('in');
+      reveal.unobserve(e.target);
+      $$('[data-count]', e.target).forEach(countUp);
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  $$('.reveal').forEach((el) => reveal.observe(el));
+
+  // The step nearest the middle of the viewport is the active one.
+  const steps = $$('.step');
+  if (steps.length) {
+    const stepIO = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { steps.forEach((s) => s.classList.toggle('active', s === e.target)); } });
+    }, { rootMargin: '-42% 0px -52% 0px' });
+    steps.forEach((s) => stepIO.observe(s));
+  }
 }
 
-document.addEventListener('click', function(e) {
-  const anchor = e.target.closest('a');
-  if (!anchor) return;
-
-  const href = anchor.getAttribute('href') || '';
-  const url = href.toLowerCase();
-  const linkText = (anchor.innerText || anchor.textContent || '').trim();
-  const ctaLocation = detectCtaLocation(anchor);
-
-  if (url.includes('wa.me')) {
-    trackGA4Event('click_whatsapp', { link_url: href, link_text: linkText, cta_location: ctaLocation });
-  } else if (url.includes('calendly.com')) {
-    trackGA4Event('book_strategy_call', { link_url: href, link_text: linkText, cta_location: ctaLocation });
-  } else if (url.startsWith('mailto:')) {
-    trackGA4Event('click_email', { link_url: href, link_text: linkText, cta_location: ctaLocation });
-  } else if (url.includes('.pdf')) {
-    trackGA4Event('download_case_study', { file_name: href.split('/').pop(), link_text: linkText, cta_location: ctaLocation });
-  } else if (url.includes('instagram.com') || url.includes('linkedin.com') || url.includes('facebook.com')) {
-    trackGA4Event('social_click', { platform: detectSocialPlatform(url), link_url: href, link_text: linkText, cta_location: ctaLocation });
-  } else if (url === '#services') {
-    trackGA4Event('service_click', { link_url: href, link_text: linkText, cta_location: ctaLocation });
+/* ───────── Intro ───────── */
+let introDone = false;
+function finishIntro() {
+  if (introDone) return;
+  introDone = true;
+  store.set('sg-intro', '1');
+  const intro = $('intro');
+  const site = $('site');
+  site.classList.add('visible');
+  if (intro) {
+    if (reduceMotion) intro.remove();
+    else { intro.classList.add('exit'); setTimeout(() => intro.remove(), 750); }
   }
-});
+  startScrollEffects();
+  // Three.js (about 480 KB) loads only now, so it never delays the first paint or the intro.
+  const boot = () => import('./space-bg.js')
+    .then(({ initSpaceBackground }) => { initSpaceBackground(); $('space-canvas').classList.add('on'); })
+    .catch((e) => console.warn('Space background failed:', e));
+  (window.requestIdleCallback || ((f) => setTimeout(f, 300)))(boot, { timeout: 1200 });
+}
 
-(function initScrollDepthTracking() {
-  const scrollMilestones = { 50: false, 90: false };
-  window.addEventListener('scroll', function onScrollDepth() {
-    const scrolledPercent = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
-    if (!scrollMilestones[50] && scrolledPercent >= 50) {
-      scrollMilestones[50] = true;
-      trackGA4Event('scroll_depth', { percent_scrolled: 50 });
-    }
-    if (!scrollMilestones[90] && scrolledPercent >= 90) {
-      scrollMilestones[90] = true;
-      trackGA4Event('scroll_depth', { percent_scrolled: 90 });
-      window.removeEventListener('scroll', onScrollDepth);
-    }
-  }, { passive: true });
-})();
+function runIntro() {
+  const intro = $('intro');
+  if (!intro) return finishIntro();
+  if (reduceMotion || store.get('sg-intro')) { $('intro').remove(); return finishIntro(); }
+
+  $('intro-skip').addEventListener('click', finishIntro);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finishIntro(); });
+
+  const canvas = $('intro-canvas');
+  const ctx = canvas.getContext('2d');
+  const fit = () => { canvas.width = innerWidth; canvas.height = innerHeight; };
+  fit();
+  const stars = Array.from({ length: 360 }, () => ({
+    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+    r: Math.random() * 1.2 + 0.15, a: Math.random() * 0.55 + 0.08, s: Math.random() * 0.02 + 0.005, o: Math.random() * 6.28,
+  }));
+  let tick = 0;
+  (function draw() {
+    if (introDone) return;
+    tick++;
+    const { width: w, height: h } = canvas;
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+    const glow = ctx.createRadialGradient(w / 2, h, 0, w / 2, h * 0.85, w * 0.55);
+    glow.addColorStop(0, 'rgba(0,229,255,.055)'); glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, w, h);
+    stars.forEach((s) => {
+      ctx.fillStyle = `rgba(255,255,255,${s.a * (Math.sin(tick * s.s + s.o) * 0.38 + 0.62)})`;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.2832); ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  })();
+
+  const trail = $('s-trail'), guide = $('s-path-guide'), rocket = $('logo-rocket'), ring = $('logo-ring');
+  const burst = $('burst-canvas').getContext('2d');
+  const len = guide.getTotalLength();
+  trail.style.strokeDasharray = len; trail.style.strokeDashoffset = len;
+
+  const ease = (x) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
+  const PIXELS = [[-22,8,14,'#7030e0'],[-10,16,12,'#5020c0'],[-30,-2,10,'#a040f0'],[-18,20,10,'#6028d8'],[-38,8,8,'#8020d0'],[-28,18,8,'#4010b0'],[-8,26,8,'#5828cc'],[-44,0,6,'#9030e0'],[-36,20,6,'#3810a8'],[2,20,6,'#7040f0'],[-50,10,5,'#a050ff'],[-16,30,5,'#6030d0'],[-42,28,4,'#5020b0'],[-24,34,4,'#8040e8'],[4,30,4,'#4820c0'],[-54,22,4,'#9040f8']];
+  let alpha = 0;
+  (function paint() {
+    burst.clearRect(0, 0, 420, 420);
+    alpha = Math.min(1, alpha + 0.06);
+    PIXELS.forEach(([ox, oy, s, c]) => { burst.globalAlpha = alpha; burst.fillStyle = c; burst.fillRect(108 + ox - s / 2, 318 + oy - s / 2, s, s); });
+    burst.globalAlpha = 1;
+    if (alpha < 1 && !introDone) requestAnimationFrame(paint);
+  })();
+
+  let angle = 0, first = true;
+  const place = (d) => {
+    const p = guide.getPointAtLength(d), n = guide.getPointAtLength(Math.min(d + 4, len));
+    const target = (Math.atan2(n.y - p.y, n.x - p.x) * 180) / Math.PI + 90;
+    if (first) { angle = target; first = false; }
+    let diff = target - angle;
+    if (diff > 180) diff -= 360; if (diff < -180) diff += 360;
+    angle += diff * 0.14;
+    rocket.setAttribute('transform', `translate(${p.x},${p.y}) rotate(${angle})`);
+    trail.style.strokeDashoffset = Math.max(0, len - d);
+  };
+
+  ring.style.transition = 'stroke-dashoffset 1s ease-out';
+  ring.style.strokeDashoffset = '0';
+  setTimeout(() => {
+    rocket.style.opacity = '1'; place(0);
+    const t0 = performance.now();
+    (function fly(now) {
+      if (introDone) return;
+      const t = Math.min((now - t0) / 2000, 1);
+      place(ease(t) * len);
+      if (t < 1) requestAnimationFrame(fly);
+    })(t0);
+    setTimeout(() => { if (!introDone) $('logo-reveal').classList.add('on'); }, 1500);
+    setTimeout(finishIntro, 3000);
+  }, 500);
+}
+
+/* ───────── Navigation ───────── */
+function initNav() {
+  const nav = $('nav');
+  new IntersectionObserver(([e]) => nav.classList.toggle('scrolled', !e.isIntersecting)).observe($('top-sentinel'));
+
+  const links = $$('.nav-links a');
+  const sections = links.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  const spy = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      links.forEach((a) => a.setAttribute('aria-current', String(a.getAttribute('href') === '#' + e.target.id)));
+    });
+  }, { rootMargin: '-45% 0px -50% 0px' });
+  sections.forEach((s) => spy.observe(s));
+
+  const burger = $('burger'), menu = $('mob-menu');
+  const setMenu = (open) => {
+    menu.classList.toggle('open', open);
+    menu.inert = !open;
+    burger.setAttribute('aria-expanded', String(open));
+    document.body.style.overflow = open ? 'hidden' : '';
+    (open ? $('close-mob') : burger).focus();
+  };
+  burger.addEventListener('click', () => setMenu(true));
+  $('close-mob').addEventListener('click', () => setMenu(false));
+  $$('a', menu).forEach((a) => a.addEventListener('click', () => setMenu(false)));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('open')) setMenu(false); });
+  matchMedia('(min-width: 1101px)').addEventListener('change', (e) => { if (e.matches && menu.classList.contains('open')) setMenu(false); });
+
+  // The floating WhatsApp button appears once the hero has scrolled away.
+  new IntersectionObserver(([e]) => $('wa-float').classList.toggle('show', !e.isIntersecting)).observe($('hero'));
+}
+
+/* ───────── Spotlight cards (real pointers only) ───────── */
+function initSpotlight() {
+  if (!canHover) return;
+  $$('.spot').forEach((card) => {
+    let raf = 0;
+    card.addEventListener('pointermove', (e) => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', e.clientX - r.left + 'px');
+        card.style.setProperty('--my', e.clientY - r.top + 'px');
+        raf = 0;
+      });
+    });
+  });
+}
+
+/* ───────── FAQ ───────── */
+function initFaq() {
+  const buttons = $$('.faq-q');
+  buttons.forEach((btn) => btn.addEventListener('click', () => {
+    const item = btn.closest('.faq-item');
+    const open = !item.classList.contains('open');
+    buttons.forEach((b) => { b.closest('.faq-item').classList.remove('open'); b.setAttribute('aria-expanded', 'false'); });
+    item.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', String(open));
+  }));
+}
+
+/* ───────── Contact form ───────── */
+function track(name, params = {}) {
+  if (typeof window.gtag === 'function') window.gtag('event', name, params);
+}
+
+function initForm() {
+  const form = $('cf');
+  const field = (id, msg) => {
+    const fg = $(id).closest('.fg');
+    fg.classList.toggle('bad', !!msg);
+    fg.querySelector('.err').textContent = msg || '';
+    $(id).setAttribute('aria-invalid', String(!!msg));
+    return !msg;
+  };
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = (id) => ($(id).value || '').trim();
+    const digits = v('fw').replace(/\D/g, '');
+    const okName = field('fn', v('fn') ? '' : 'Please enter your name');
+    const okPhone = field('fw', !v('fw') || (digits.length >= 8 && digits.length <= 15) ? '' : 'Enter a valid number, for example +91 98765 43210');
+    if (!okName || !okPhone) { form.querySelector('.bad input, .bad select')?.focus(); return; }
+
+    const lines = ['Hi SpaceGrow Media!', '', "I'd like a free audit.", '', `Name: ${v('fn')}`];
+    if (v('fb')) lines.push(`Business: ${v('fb')}`);
+    if (v('fw')) lines.push(`WhatsApp: ${v('fw')}`);
+    if (v('fs')) lines.push(`Needs: ${v('fs')}`);
+    track('generate_lead', { lead_source: 'website', cta_location: 'contact_form', service_interest: v('fs') || 'not_specified' });
+    window.open(`https://wa.me/919987272788?text=${encodeURIComponent(lines.join('\n'))}`, '_blank', 'noopener');
+  });
+  $$('input, select', form).forEach((el) => el.addEventListener('input', () => { if (el.closest('.bad')) field(el.id, ''); }));
+}
+
+/* ───────── Analytics (same events as v1) ───────── */
+function initAnalytics() {
+  const sections = { hero: 'hero_section', services: 'services_section', portfolio: 'portfolio_section', 'case-studies': 'case_studies_section', contact: 'contact_section', about: 'about_section', faq: 'faq_section' };
+  const where = (el) => {
+    for (const [id, label] of Object.entries(sections)) if (el.closest('#' + id)) return label;
+    if (el.closest('#nav, .mob')) return 'navigation';
+    if (el.closest('footer')) return 'footer';
+    if (el.closest('#wa-float')) return 'floating_button';
+    return 'unknown';
+  };
+  const platform = (u) => (u.includes('instagram.com') ? 'Instagram' : u.includes('linkedin.com') ? 'LinkedIn' : u.includes('facebook.com') ? 'Facebook' : 'Other');
+
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a');
+    if (!a) return;
+    const href = a.getAttribute('href') || '';
+    const url = href.toLowerCase();
+    const base = { link_url: href, link_text: (a.innerText || '').trim(), cta_location: where(a) };
+    if (url.includes('wa.me')) track('click_whatsapp', base);
+    else if (url.includes('calendly.com')) track('book_strategy_call', base);
+    else if (url.startsWith('mailto:')) track('click_email', base);
+    else if (url.includes('.pdf')) track('download_case_study', { file_name: href.split('/').pop(), link_text: base.link_text, cta_location: base.cta_location });
+    else if (/instagram\.com|linkedin\.com|facebook\.com/.test(url)) track('social_click', { platform: platform(url), ...base });
+    else if (url === '#services') track('service_click', base);
+  });
+
+  // 50 and 90 percent scroll depth, from zero-size markers instead of a scroll listener.
+  const seen = new Set();
+  const depth = new IntersectionObserver((entries) => entries.forEach((e) => {
+    const d = e.target.dataset.depth;
+    if (e.isIntersecting && !seen.has(d)) { seen.add(d); track('scroll_depth', { percent_scrolled: Number(d) }); depth.unobserve(e.target); }
+  }));
+  $$('.depth').forEach((m) => depth.observe(m));
+}
+
+$('year').textContent = new Date().getFullYear();
+initNav();
+initSpotlight();
+initFaq();
+initForm();
+initAnalytics();
+runIntro();
