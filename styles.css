@@ -142,9 +142,9 @@ em, .serif { font-family: var(--f-serif); font-style: italic; font-weight: 400; 
 
 /* ───────── Nav ───────── */
 .nav { position: fixed; inset: 0 0 auto; z-index: 100; height: var(--nav-h); transition: transform 0.6s var(--expo), background-color 0.5s var(--ease), border-color 0.5s, backdrop-filter 0.5s; border-bottom: 1px solid transparent; }
-.nav { text-shadow: 0 1px 14px rgba(0, 0, 0, 0.75); }
+.nav { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 18px rgba(0, 0, 0, 0.8); }
 .nav::before { content: ""; position: absolute; inset: 0 0 -36px; z-index: -1; pointer-events: none; background: linear-gradient(to bottom, rgba(3, 4, 10, 0.9), rgba(3, 4, 10, 0.55) 60%, transparent); opacity: 0; transition: opacity 0.5s var(--ease); }
-.nav.scrolled::before { opacity: 1; }
+.nav.scrolled::before { opacity: 0; }
 .nav-explore { white-space: nowrap; flex: none; display: inline-flex; align-items: center; gap: 0.45rem; height: 44px; padding: 0 1rem; border-radius: 999px; border: 1px solid var(--line-2); background: rgba(255, 255, 255, 0.04); font-weight: 600; font-size: 0.9rem; transition: border-color 0.3s, background-color 0.3s; }
 .nav-explore svg { color: var(--accent); }
 .nav-in { height: 100%; display: flex; align-items: center; gap: 1.5rem; }
@@ -389,6 +389,11 @@ html.exploring .explore-hud { opacity: 1; }
 .hud-name { margin: 0.45rem 0 0.9rem; font: 400 1.9rem/1.05 var(--f-display); letter-spacing: -0.03em; }
 .hud-facts { display: grid; grid-template-columns: auto 1fr; gap: 0.45rem 1rem; font-size: 0.9rem; }
 .hud-facts dt { color: var(--muted); }
+.hud-fun { margin-top: 1rem; padding-top: 0.9rem; border-top: 1px solid var(--line); }
+.hud-fun-h { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.45rem; font: 500 0.7rem/1 var(--f-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); }
+.hud-fun-h button { height: 28px; padding: 0 0.7rem; border-radius: 999px; border: 1px solid var(--line-2); color: var(--ink); font: 500 0.75rem/1 var(--f-body); letter-spacing: 0; text-transform: none; pointer-events: auto; transition: border-color 0.3s; }
+.hud-fun p { font-size: 0.92rem; line-height: 1.5; color: var(--ink); min-height: 4.5em; transition: opacity 0.25s; }
+.hud-info { pointer-events: auto; }
 .hud-facts dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
 .hud-tele { top: 96px; right: 24px; display: grid; justify-items: end; gap: 0.2rem; text-align: right; }
 .hud-tele span { font: 500 0.7rem/1 var(--f-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
@@ -516,3 +521,19 @@ html.exploring, html.exploring body { cursor: grab; }
 .stats { background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; border-radius: 0; padding: 0.6rem 0; }
 .stats li:first-child { padding-left: 0; }
 .stats .stat-l { text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8); }
+
+/* Explore HUD: nothing wraps or spills. */
+.hud-info { width: min(360px, calc(100vw - 48px)); }
+.hud-facts { grid-template-columns: minmax(0, 1fr) auto; }
+.hud-facts dt { min-width: 0; }
+.hud-facts dd { white-space: nowrap; }
+.hud-fun-h { flex-wrap: nowrap; letter-spacing: 0.12em; }
+.hud-fun-h span { white-space: nowrap; }
+.hud-fun-h button { flex: none; white-space: nowrap; }
+.hud-tele small, .hud-tele span { white-space: nowrap; }
+.label3d { max-width: none; }
+
+/* Nav buttons stay crisp: the readability shadow is for the plain links only. */
+.nav .btn, .nav .nav-explore, .nav .burger { text-shadow: none; }
+.nav-cta { background: #fff; color: #05060c; font-weight: 700; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6), 0 8px 28px -6px rgba(94, 231, 255, 0.65); }
+.nav-cta::before { opacity: 0.35; }

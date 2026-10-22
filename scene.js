@@ -77,9 +77,16 @@ const SKY = {
 
 const EARTH = {
   vertexShader: `
+#include <common>
+#include <logdepthbuf_pars_vertex>
+
     varying vec2 vUv; varying vec3 vN; varying vec3 vP; varying vec3 vL;
-    void main(){ vUv = uv; vL = normalize(position); vN = normalize(mat3(modelMatrix) * normal); vec4 wp = modelMatrix * vec4(position,1.0); vP = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }`,
+    void main(){ vUv = uv; vL = normalize(position); vN = normalize(mat3(modelMatrix) * normal); vec4 wp = modelMatrix * vec4(position,1.0); vP = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp;
+#include <logdepthbuf_vertex>
+ }`,
   fragmentShader: `
+#include <logdepthbuf_pars_fragment>
+
     uniform sampler2D uDay, uNight, uSpec, uClouds; uniform vec3 uSun; uniform float uCloudShift;
     uniform vec3 uIndia, uMumbai; uniform float uTime;
     varying vec2 vUv; varying vec3 vN; varying vec3 vP; varying vec3 vL;
@@ -103,6 +110,8 @@ const EARTH = {
       col += vec3(0.45, 0.9, 1.0) * (exp(-pow((dm - rr) * 150.0, 2.0)) * (1.0 - rr / 0.09) * 1.3 + smoothstep(0.011, 0.004, dm) * 2.2);
       float fres = pow(1.0 - max(dot(n, v), 0.0), 2.5);
       col = mix(col, vec3(0.32, 0.58, 1.0) * (0.2 + 0.8 * day), fres * 0.4 * smoothstep(-0.35, 0.4, ndl)); // inner haze
+      
+#include <logdepthbuf_fragment>
       gl_FragColor = vec4(col, 1.0);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
@@ -112,6 +121,8 @@ const EARTH = {
 const CLOUDS = {
   vertexShader: EARTH.vertexShader,
   fragmentShader: `
+#include <logdepthbuf_pars_fragment>
+
     uniform sampler2D uClouds; uniform vec3 uSun; uniform float uCloudShift;
     varying vec2 vUv; varying vec3 vN; varying vec3 vP;
     void main(){
@@ -120,6 +131,8 @@ const CLOUDS = {
       float ndl = dot(n, uSun);
       float lit = smoothstep(-0.1, 0.45, ndl);
       vec3 col = vec3(1.0) * (0.02 + 1.9 * max(ndl, 0.0)) + vec3(1.0, 0.55, 0.3) * 0.25 * (1.0 - abs(ndl * 3.0 - 0.15)) * step(0.0, ndl + 0.3);
+      
+#include <logdepthbuf_fragment>
       gl_FragColor = vec4(col, a * (0.15 + 0.85 * lit) * 0.92);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
@@ -128,21 +141,33 @@ const CLOUDS = {
 
 const ATMOSPHERE = {
   vertexShader: `
+#include <common>
+#include <logdepthbuf_pars_vertex>
+
     varying vec3 vN; varying vec3 vNW; varying vec3 vView;
-    void main(){ vN = normalize(normalMatrix * normal); vNW = normalize(mat3(modelMatrix) * normal); vec4 mv = modelViewMatrix * vec4(position,1.0); vView = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
+    void main(){ vN = normalize(normalMatrix * normal); vNW = normalize(mat3(modelMatrix) * normal); vec4 mv = modelViewMatrix * vec4(position,1.0); vView = normalize(-mv.xyz); gl_Position = projectionMatrix * mv;
+#include <logdepthbuf_vertex>
+ }`,
   fragmentShader: `
+#include <logdepthbuf_pars_fragment>
+
     uniform vec3 uSun; uniform vec3 uColor; uniform float uPower; uniform float uStrength;
     varying vec3 vN; varying vec3 vNW; varying vec3 vView;
     void main(){
       float rim = pow(max(0.74 - dot(vN, vView), 0.0), uPower);
       float s = smoothstep(-0.45, 0.55, dot(vNW, uSun));
       vec3 col = mix(vec3(0.02, 0.05, 0.14), uColor, s);
+      
+#include <logdepthbuf_fragment>
       gl_FragColor = vec4(col * rim * uStrength * (0.12 + 0.88 * s), 1.0);
     }`,
 };
 
 const STARS = {
   vertexShader: `
+#include <common>
+#include <logdepthbuf_pars_vertex>
+
     attribute float aSize; attribute vec3 aColor; attribute float aTw;
     uniform float uTime; uniform float uPR;
     varying vec3 vColor; varying float vA;
@@ -151,21 +176,34 @@ const STARS = {
       vA = 0.78 + 0.22 * sin(uTime * (0.6 + aTw * 2.4) + aTw * 60.0);
       vec4 mv = modelViewMatrix * vec4(position, 1.0);
       gl_Position = projectionMatrix * mv;
+#include <logdepthbuf_vertex>
+
       gl_PointSize = aSize * uPR;
     }`,
   fragmentShader: `
+#include <logdepthbuf_pars_fragment>
+
     varying vec3 vColor; varying float vA;
     void main(){
       float d = length(gl_PointCoord - 0.5);
       float a = smoothstep(0.5, 0.0, d); a *= a;
+      
+#include <logdepthbuf_fragment>
       gl_FragColor = vec4(vColor * a * vA, 1.0);
     }`,
 };
 
 const SUN = {
-  vertexShader: `varying vec3 vP; varying vec3 vN; varying vec3 vV;
-    void main(){ vP = position; vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position,1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
-  fragmentShader: `${NOISE}
+  vertexShader: `
+#include <common>
+#include <logdepthbuf_pars_vertex>
+varying vec3 vP; varying vec3 vN; varying vec3 vV;
+    void main(){ vP = position; vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position,1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv;
+#include <logdepthbuf_vertex>
+ }`,
+  fragmentShader: `
+#include <logdepthbuf_pars_fragment>
+${NOISE}
     uniform float uTime; varying vec3 vP; varying vec3 vN; varying vec3 vV;
     void main(){
       vec3 p = normalize(vP);
@@ -180,6 +218,8 @@ const SUN = {
       col = mix(col, deep, spots * 0.85);
       col *= mix(0.45, 1.0, limb);
       col += vec3(0.8, 0.3, 0.08) * pow(1.0 - mu, 3.0);
+      
+#include <logdepthbuf_fragment>
       gl_FragColor = vec4(col, 1.0);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
@@ -188,8 +228,15 @@ const SUN = {
 
 /* Corona, flares and prominences on a camera-facing plane around the sun. */
 const CORONA = {
-  vertexShader: `varying vec2 vUv; void main(){ vUv = uv * 2.0 - 1.0; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
-  fragmentShader: `${NOISE}
+  vertexShader: `
+#include <common>
+#include <logdepthbuf_pars_vertex>
+varying vec2 vUv; void main(){ vUv = uv * 2.0 - 1.0; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+#include <logdepthbuf_vertex>
+ }`,
+  fragmentShader: `
+#include <logdepthbuf_pars_fragment>
+${NOISE}
     uniform float uTime; uniform float uR; uniform float uFade; varying vec2 vUv;
     void main(){
       float r = length(vUv);
@@ -215,6 +262,8 @@ const CORONA = {
       float inside = smoothstep(uR - 0.01, uR + 0.005, r);
       vec3 col = vec3(1.0, 0.62, 0.3) * corona * 0.22 + vec3(1.0, 0.7, 0.4) * flares * 0.18 + vec3(1.0, 0.45, 0.2) * prom * 0.75;
       col *= inside * smoothstep(1.0, 0.7, r) * uFade;
+      
+#include <logdepthbuf_fragment>
       gl_FragColor = vec4(col, 1.0);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
@@ -223,14 +272,30 @@ const CORONA = {
 
 /* Light-speed streaks: head bright, tail transparent. */
 const WARP = {
-  vertexShader: `attribute float aHead; varying float vHead; void main(){ vHead = aHead; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
-  fragmentShader: `uniform float uAlpha; varying float vHead; void main(){ gl_FragColor = vec4(vec3(0.7, 0.88, 1.0) * vHead * uAlpha, 1.0); }`,
+  vertexShader: `
+#include <common>
+#include <logdepthbuf_pars_vertex>
+attribute float aHead; varying float vHead; void main(){ vHead = aHead; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+#include <logdepthbuf_vertex>
+ }`,
+  fragmentShader: `
+#include <logdepthbuf_pars_fragment>
+uniform float uAlpha; varying float vHead; void main(){ 
+#include <logdepthbuf_fragment>
+      gl_FragColor = vec4(vec3(0.7, 0.88, 1.0) * vHead * uAlpha, 1.0); }`,
 };
 
 /* Planet ring: texture colour and alpha, lit by the Sun, with the planet's real shadow cast across it. */
 const RING = {
-  vertexShader: `varying vec2 vUv; varying vec3 vW; void main(){ vUv = uv; vec4 w = modelMatrix * vec4(position,1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
+  vertexShader: `
+#include <common>
+#include <logdepthbuf_pars_vertex>
+varying vec2 vUv; varying vec3 vW; void main(){ vUv = uv; vec4 w = modelMatrix * vec4(position,1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w;
+#include <logdepthbuf_vertex>
+ }`,
   fragmentShader: `
+#include <logdepthbuf_pars_fragment>
+
     uniform sampler2D uMap; uniform vec3 uCenter; uniform float uR; uniform float uOpacity;
     varying vec2 vUv; varying vec3 vW;
     void main(){
@@ -238,6 +303,8 @@ const RING = {
       vec3 d = normalize(-vW);                       // toward the Sun at the origin
       float k = dot(uCenter - vW, d);
       float shadow = (k > 0.0 && length(vW + d * k - uCenter) < uR) ? 0.06 : 1.0;
+      
+#include <logdepthbuf_fragment>
       gl_FragColor = vec4(t.rgb * 1.15 * shadow, t.a * uOpacity);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
@@ -334,7 +401,7 @@ class Universe {
     this.ray = new THREE.Raycaster();
     this.lookM = new THREE.Matrix4();
     this.tmpQ = new THREE.Quaternion();
-    this.steer = matchMedia('(pointer: fine)').matches;
+    this.steer = true; // any mouse or pen steers; touch never does (checked per event)
     this.labelRoot = document.getElementById('labels');
     this.clock = new THREE.Clock();
     this.time = 0;
@@ -470,7 +537,7 @@ class Universe {
       this.tex('/textures/hd/earth-clouds-1k.webp', false),
       this.tex(this.res('moon')),
     ]);
-    if (clouds) clouds.wrapS = THREE.RepeatWrapping;
+    if (clouds) { clouds.wrapS = THREE.RepeatWrapping; clouds.needsUpdate = true; }
     const seg = this.isMobile ? 96 : 160;
     this.earth = new THREE.Group();
     this.earth.position.copy(planetPos(EARTH_EL, this.days));
@@ -506,6 +573,8 @@ class Universe {
     this.moon.lookAt(0, 0, 0);
     this.earth.add(this.moon);
     this.named(this.moon, 'Moon', 2.73);
+    this.moon.userData.pole = UP.clone();
+    this.moon.userData.baseSpin = 0; // tidally locked: no spin of its own
     this.moon.userData.root = this.earth;
   }
 
@@ -544,7 +613,7 @@ class Universe {
   }
 
   buildWarp() {
-    const n = this.isMobile ? 420 : 900;
+    const n = this.isMobile ? 140 : 260;
     this.warpN = n;
     const pos = new Float32Array(n * 6), head = new Float32Array(n * 2);
     this.warpSeeds = new Float32Array(n * 3);
@@ -566,11 +635,11 @@ class Universe {
   updateWarp(dt, v) {
     const speed = Math.min(Math.abs(v), 9000), dirSign = v >= 0 ? 1 : -1;
     const strength = THREE.MathUtils.smoothstep(speed, 250, 3200);
-    this.warpMat.uniforms.uAlpha.value = strength * 0.9;
+    this.warpMat.uniforms.uAlpha.value = strength * 0.45;
     this.warp.visible = strength > 0.01;
     if (!this.warp.visible) return;
     const pos = this.warp.geometry.attributes.position.array, sd = this.warpSeeds;
-    const travel = (60 + speed * 0.09) * dt * dirSign, len = 2 + strength * 38;
+    const travel = (60 + speed * 0.09) * dt * dirSign, len = 2 + strength * 22;
     for (let i = 0; i < this.warpN; i++) {
       const k = i * 3;
       sd[k + 2] += travel;
@@ -651,10 +720,16 @@ class Universe {
       this.measure();
     });
     this.ro.observe(document.documentElement);
-    if (matchMedia('(pointer: fine)').matches) {
-      this.onMove = (e) => { this.pointer.tx = e.clientX / window.innerWidth - 0.5; this.pointer.ty = e.clientY / window.innerHeight - 0.5; };
-      window.addEventListener('pointermove', this.onMove, { passive: true });
-    }
+    // Listen on every device: touchscreen laptops report "coarse" even when a mouse is plugged in.
+    this.onMove = (e) => {
+      if (e.pointerType === 'touch') return;
+      this.mouse = true;
+      this.pointer.tx = e.clientX / window.innerWidth - 0.5; this.pointer.ty = e.clientY / window.innerHeight - 0.5;
+    };
+    this.onLeave = () => { this.pointer.tx = this.pointer.ty = 0; };
+    window.addEventListener('pointermove', this.onMove, { passive: true });
+    document.documentElement.addEventListener('pointerleave', this.onLeave);
+    window.addEventListener('blur', this.onLeave);
     this.onVis = () => { this.renderer.setAnimationLoop(document.hidden ? null : () => this.frame()); this.clock.getDelta(); };
     document.addEventListener('visibilitychange', this.onVis);
   }
@@ -687,8 +762,6 @@ class Universe {
       cam.position.lerp(targetPos, REDUCED ? 1 : k(2.6));
       this.look.lerp(targetLook, REDUCED ? 1 : k(2.8));
       // Cursor parallax, scaled to how close we are to what we're looking at.
-      const near = cam.position.distanceTo(this.look) * 0.03;
-      cam.position.x += this.pointer.x * near; cam.position.y -= this.pointer.y * near * 0.6;
       cam.lookAt(this.look);
       travelSpeed = before.distanceTo(cam.position) / Math.max(dt, 1e-3);
       if (Math.abs(this.vel) > 60 && !this.grabbed) { const e = Math.exp(-4 * dt); this.view.yaw *= e; this.view.pitch *= e; }
@@ -839,11 +912,13 @@ class Universe {
       return v;
     }
     // Steering: the view turns toward the pointer, faster the further it is from the centre.
-    if (this.steer && !this.steerHold) {
-      const dz = (v) => Math.sign(v) * Math.pow(Math.max(0, Math.abs(v) - 0.05) / 0.45, 1.4);
-      this.baseQuat.premultiply(this.tmpQ.setFromAxisAngle(UP, -dz(this.pointer.x) * 1.7 * dt));
+    // Mouse-only steering only while W (fly) or Space (look) is held; otherwise click and drag to look.
+    if (false) { // mouse-slide steering removed by request: look by click and drag only
+      // Small dead zone in the centre, then turn faster the further the cursor is from it.
+      const dz = (v) => Math.sign(v) * Math.pow(Math.min(1, Math.max(0, Math.abs(v) - 0.04) / 0.42), 1.15);
+      this.baseQuat.premultiply(this.tmpQ.setFromAxisAngle(UP, -dz(this.pointer.x) * 2.2 * dt));
       const right = this.tmp.side.set(1, 0, 0).applyQuaternion(this.baseQuat);
-      this.baseQuat.premultiply(this.tmpQ.setFromAxisAngle(right, -dz(this.pointer.y) * 1.2 * dt));
+      this.baseQuat.premultiply(this.tmpQ.setFromAxisAngle(right, -dz(this.pointer.y) * 1.6 * dt));
     }
     cam.quaternion.copy(this.baseQuat);
     cam.rotateOnWorldAxis(UP, this.view.yaw);
@@ -855,7 +930,7 @@ class Universe {
     if (k.s || k.ArrowDown) this.flyVel.addScaledVector(fwd, -acc);
     if (k.d || k.ArrowRight) this.flyVel.addScaledVector(right, acc);
     if (k.a || k.ArrowLeft) this.flyVel.addScaledVector(right, -acc);
-    if (k.e || k[' ']) this.flyVel.y += acc;
+    if (k.e) this.flyVel.y += acc;
     if (k.q) this.flyVel.y -= acc;
     this.flyVel.multiplyScalar(Math.exp(-1.4 * dt));
     cam.position.addScaledVector(this.flyVel, dt);
@@ -896,9 +971,23 @@ class Universe {
         p.addScaledVector(cam.up, L.obj.userData.labelR * 1.3);
         show = exploreReady;
       }
+      L.depth = show ? L.obj.getWorldPosition(this.tmp.look).distanceTo(cam.position) : Infinity;
       if (show) { p.project(cam); show = p.z < 1 && Math.abs(p.x) < 1.1 && Math.abs(p.y) < 1.1; }
-      if (show !== L.on) { L.on = show; L.el.classList.toggle('on', show); }
-      if (show) L.el.style.transform = `translate3d(${((p.x + 1) / 2 * w).toFixed(1)}px, ${((1 - p.y) / 2 * h).toFixed(1)}px, 0)`;
+      L.want = show;
+      L.x = (p.x + 1) / 2 * w; L.y = (1 - p.y) / 2 * h;
+    }
+    // No overlapping labels: the pin and nearer bodies win, anything that would collide is hidden.
+    const placed = [];
+    const order = this.labels.filter((L) => L.want).sort((a, c) => (c.pin - a.pin) || (a.depth - c.depth));
+    for (const L of this.labels) if (!L.want && L.on) { L.on = false; L.el.classList.remove('on'); }
+    for (const L of order) {
+      L.w ||= L.el.offsetWidth || 110;
+      const box = [L.x + 6, L.y - 18, L.x + 18 + L.w, L.y + 18];
+      const clash = placed.some((q) => box[0] < q[2] && box[2] > q[0] && box[1] < q[3] && box[3] > q[1]);
+      if (clash) { if (L.on) { L.on = false; L.el.classList.remove('on'); } continue; }
+      placed.push(box);
+      if (!L.on) { L.on = true; L.el.classList.add('on'); L.w = L.el.offsetWidth || L.w; }
+      L.el.style.transform = `translate3d(${L.x.toFixed(1)}px, ${L.y.toFixed(1)}px, 0)`;
     }
   }
 
