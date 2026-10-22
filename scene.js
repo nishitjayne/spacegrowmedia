@@ -526,6 +526,7 @@ class Universe {
     const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0x7fa6ff, transparent: true, opacity: 0, depthWrite: false }));
     this.scene.add(line);
     this.orbits.push(line);
+    return line;
   }
 
   async buildEarth() {
@@ -541,7 +542,8 @@ class Universe {
     const seg = this.isMobile ? 96 : 160;
     this.earth = new THREE.Group();
     this.earth.position.copy(planetPos(EARTH_EL, this.days));
-    this.orbitLine(EARTH_EL);
+    this.earthOrbit = this.orbitLine(EARTH_EL);
+    this.earthOrbit.material.color.set(0x5ee7ff);
     const uniforms = { uDay: { value: day }, uNight: { value: night }, uSpec: { value: spec }, uClouds: { value: clouds }, uSun: { value: new THREE.Vector3() }, uCloudShift: { value: 0 }, uIndia: { value: latLon(22, 79) }, uMumbai: { value: MUMBAI }, uTime: { value: 0 } };
     this.earthUniforms = uniforms;
     this.earthBody = new THREE.Mesh(new THREE.SphereGeometry(EARTH_R, seg, seg / 2), new THREE.ShaderMaterial({ ...EARTH, uniforms }));
@@ -560,6 +562,12 @@ class Universe {
     this.scene.add(this.earth);
     this.named(this.earthBody, 'Earth', EARTH_R);
     this.earthBody.userData.root = this.earth;
+    const homeLabel = this.labels[this.labels.length - 1];
+    homeLabel.home = true; homeLabel.el.classList.add('home'); homeLabel.el.textContent = 'Earth · Home';
+    // Beacon: Earth is under a pixel wide from far away, so a soft fixed-size glow marks home.
+    this.beacon = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture([[0, 'rgba(160,240,255,1)'], [0.25, 'rgba(94,231,255,0.55)'], [1, 'rgba(94,231,255,0)']], 64), sizeAttenuation: false, depthWrite: false, transparent: true, blending: THREE.AdditiveBlending, opacity: 0 }));
+    this.beacon.scale.setScalar(0.045);
+    this.earth.add(this.beacon);
     this.label(this.earthBody, 'Mumbai, India', MUMBAI.clone().multiplyScalar(EARTH_R * 1.01), true);
 
     // Moon: 0.27 Earth radii, on a compressed orbit, tidally locked.
@@ -781,7 +789,11 @@ class Universe {
     this.starMat.uniforms.uTime.value = this.time;
     this.sunMat.uniforms.uTime.value = this.time;
     this.coronaMat.uniforms.uTime.value = this.time;
-    for (const o of this.orbits) o.material.opacity += ((this.explore ? 0.22 : 0) - o.material.opacity) * k(3);
+    for (const o of this.orbits) o.material.opacity += ((this.explore ? (o === this.earthOrbit ? 0.55 : 0.2) : 0) - o.material.opacity) * k(3);
+    if (this.beacon) {
+      const far = THREE.MathUtils.smoothstep(cam.position.distanceTo(this.earth.position), 400, 1200);
+      this.beacon.material.opacity = (this.explore ? far : 0) * (0.75 + 0.25 * Math.sin(this.time * 2.2));
+    }
 
     if (this.earthBody) {
       this.earthUniforms.uSun.value.copy(this.earth.position).negate().normalize();
@@ -886,12 +898,24 @@ class Universe {
   // Real distance from the Sun: undo the display compression (d = 700 * a^0.6).
   telemetry() { const d = this.camera.position.length(); return { au: Math.pow(d / 700, 1 / 0.6), moving: !!this.flight || this.flyVel.length() > 5 }; }
 
+  /*
+    Flight model (after van Wijk & Nuij, "Smooth and efficient zooming and panning"):
+    the gaze point eases from where you are looking to the destination, the camera's distance
+    from the gaze is interpolated on a log scale (constant perceived speed) and pulled back
+    mid-flight in proportion to the trip length, and the viewing direction is slerped.
+  */
   flyTo(to, target, name) {
-    const from = this.camera.position.clone();
-    const dist = from.distanceTo(to);
-    const ctrl = from.clone().lerp(to, 0.5).addScaledVector(UP, dist * 0.18);
-    const q1 = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(to, target, UP));
-    this.flight = { curve: new THREE.QuadraticBezierCurve3(from, ctrl, to), q0: this.camera.quaternion.clone(), q1, target, t: 0, dur: THREE.MathUtils.clamp(dist / 1200, 2.2, 6), prev: from.clone(), name, start: performance.now() };
+    const cam = this.camera;
+    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);
+    const g0 = this.gaze ? this.gaze.clone() : cam.position.clone().addScaledVector(fwd, 120);
+    const d0 = Math.max(1, cam.position.distanceTo(g0));
+    const d1 = Math.max(1, to.distanceTo(target));
+    const dir0 = cam.position.clone().sub(g0).normalize();
+    const dir1 = to.clone().sub(target).normalize();
+    const sep = g0.distanceTo(target);
+    const lift = Math.min(3.5, sep / (d0 + d1) * 0.35);             // how far to pull back mid-flight
+    const dur = THREE.MathUtils.clamp(1.8 + 0.55 * Math.log(1 + sep / (d0 + d1)), 2.2, 5.5);
+    this.flight = { g0, g1: target.clone(), d0, d1, lift, q: new THREE.Quaternion().setFromUnitVectors(dir0, dir1), dir0, start: performance.now(), dur, name, prev: cam.position.clone() };
     this.flyVel.set(0, 0, 0);
     return name;
   }
@@ -900,15 +924,17 @@ class Universe {
     const cam = this.camera;
     if (this.flight) {
       const f = this.flight;
-      f.t = Math.min(1, (performance.now() - f.start) / (f.dur * 1000));
-      const e = f.t < 0.5 ? 4 * f.t * f.t * f.t : 1 - Math.pow(-2 * f.t + 2, 3) / 2;
-      f.curve.getPoint(e, cam.position);
-      // Turn toward the target early, then keep it centred.
-      f.q1.setFromRotationMatrix(this.lookM.lookAt(cam.position, f.target, UP));
-      cam.quaternion.slerpQuaternions(f.q0, f.q1, Math.min(1, f.t * 3));
+      const t = Math.min(1, (performance.now() - f.start) / (f.dur * 1000));
+      const s = t * t * t * (t * (t * 6 - 15) + 10);                  // smootherstep: zero velocity at both ends
+      const gaze = this.tmp.look.lerpVectors(f.g0, f.g1, THREE.MathUtils.smoothstep(t, 0.08, 0.92));
+      const d = Math.exp(THREE.MathUtils.lerp(Math.log(f.d0), Math.log(f.d1), s)) * (1 + f.lift * Math.sin(Math.PI * s));
+      const dir = this.tmp.off.copy(f.dir0).applyQuaternion(this.tmpQ.identity().slerp(f.q, s));
+      cam.position.copy(gaze).addScaledVector(dir, d);
+      cam.lookAt(gaze);
+      this.gaze = gaze.clone();
       const v = f.prev.distanceTo(cam.position) / Math.max(dt, 1e-3);
       f.prev.copy(cam.position);
-      if (f.t >= 1) { this.flight = null; this.baseQuat = cam.quaternion.clone(); this.view.yaw = this.view.pitch = 0; this.onArrive?.(f.name); }
+      if (t >= 1) { this.flight = null; this.baseQuat = cam.quaternion.clone(); this.view.yaw = this.view.pitch = 0; this.onArrive?.(f.name); }
       return v;
     }
     // Steering: the view turns toward the pointer, faster the further it is from the centre.
@@ -934,6 +960,7 @@ class Universe {
     if (k.q) this.flyVel.y -= acc;
     this.flyVel.multiplyScalar(Math.exp(-1.4 * dt));
     cam.position.addScaledVector(this.flyVel, dt);
+    if (this.flyVel.lengthSq() > 1) this.gaze = null;
     return this.flyVel.length();
   }
 
@@ -976,9 +1003,24 @@ class Universe {
       L.want = show;
       L.x = (p.x + 1) / 2 * w; L.y = (1 - p.y) / 2 * h;
     }
+    // Occlusion: a label whose body sits behind a nearer body's disc is hidden.
+    const fovK = (h / 2) / Math.tan((cam.fov * Math.PI) / 360);
+    const discs = [];
+    for (const o of this.pickables) {
+      if (o.userData.root?.visible === false) continue;
+      const c = o.getWorldPosition(new THREE.Vector3()), dist = c.distanceTo(cam.position);
+      const sp = c.clone().project(cam);
+      if (sp.z >= 1) continue;
+      discs.push({ o, dist, x: (sp.x + 1) / 2 * w, y: (1 - sp.y) / 2 * h, r: (o.geometry.parameters.radius / dist) * fovK });
+    }
+    for (const L of this.labels) {
+      if (!L.want || L.pin) continue;
+      const me = discs.find((q) => q.o === L.obj);
+      if (!L.home && me && discs.some((q) => q !== me && q.dist < me.dist && Math.hypot(q.x - me.x, q.y - me.y) < q.r)) L.want = false;
+    }
     // No overlapping labels: the pin and nearer bodies win, anything that would collide is hidden.
     const placed = [];
-    const order = this.labels.filter((L) => L.want).sort((a, c) => (c.pin - a.pin) || (a.depth - c.depth));
+    const order = this.labels.filter((L) => L.want).sort((a, c) => (c.pin - a.pin) || ((c.home ? 1 : 0) - (a.home ? 1 : 0)) || (a.depth - c.depth));
     for (const L of this.labels) if (!L.want && L.on) { L.on = false; L.el.classList.remove('on'); }
     for (const L of order) {
       L.w ||= L.el.offsetWidth || 110;

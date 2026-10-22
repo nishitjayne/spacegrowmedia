@@ -5,7 +5,7 @@ document.documentElement.classList.add('rv');
 const $ = (id) => document.getElementById(id);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
+const finePointer = matchMedia('(any-hover: hover)').matches;
 const store = {
   get: (k) => { try { return sessionStorage.getItem(k); } catch { return null; } },
   set: (k, v) => { try { sessionStorage.setItem(k, v); } catch { /* private mode */ } },
@@ -512,7 +512,47 @@ function initExplore() {
   window.addEventListener('blur', () => { if (universe) universe.keys = {}; });
 }
 
+/* Testimonials: one quote at a time, loops on its own, pauses on hover, focus or the pause button. */
+function initQuotes() {
+  const root = $('tq');
+  if (!root) return;
+  const slides = $$('.tq-slide', root), tabs = $$('.tq-tab', root), stage = $('tq-stage'), btn = $('tq-pause');
+  const DUR = 7000;
+  let i = 0, t0 = performance.now(), elapsed = 0, hover = false, paused = reduceMotion;
+  const show = (n, manual) => {
+    slides[i].classList.remove('on'); slides[i].setAttribute('aria-hidden', 'true'); tabs[i].removeAttribute('aria-current');
+    tabs[i].style.setProperty('--p', '0');
+    i = (n + slides.length) % slides.length;
+    slides[i].classList.add('on'); slides[i].removeAttribute('aria-hidden'); tabs[i].setAttribute('aria-current', 'true');
+    elapsed = 0; t0 = performance.now();
+    stage.setAttribute('aria-live', manual ? 'polite' : 'off');
+  };
+  const setPaused = (p) => {
+    paused = p;
+    btn.setAttribute('aria-label', p ? 'Play testimonials' : 'Pause testimonials');
+    btn.innerHTML = p ? '<svg class="i" width="16" height="16" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg>' : '<svg class="i" width="16" height="16" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>';
+  };
+  setPaused(paused);
+  $('tq-next').addEventListener('click', () => show(i + 1, true));
+  $('tq-prev').addEventListener('click', () => show(i - 1, true));
+  btn.addEventListener('click', () => setPaused(!paused));
+  tabs.forEach((b) => b.addEventListener('click', () => show(+b.dataset.i, true)));
+  const hold = (v) => () => { hover = v; if (!v) t0 = performance.now() - elapsed; };
+  root.addEventListener('pointerenter', hold(true));
+  root.addEventListener('pointerleave', hold(false));
+  root.addEventListener('focusin', hold(true));
+  root.addEventListener('focusout', hold(false));
+  (function tick(now) {
+    if (paused || hover) t0 = now - elapsed; else elapsed = now - t0;
+    const p = Math.min(1, elapsed / DUR);
+    tabs[i].style.setProperty('--p', p.toFixed(3));
+    if (p >= 1) show(i + 1, false);
+    requestAnimationFrame(tick);
+  })(performance.now());
+}
+
 $('year').textContent = new Date().getFullYear();
+initQuotes();
 initExplore();
 initSpaceDrag();
 initNav();
