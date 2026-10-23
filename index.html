@@ -28,10 +28,10 @@
 <meta name="twitter:description" content="Strategy-led content, reels, and consistent posting. We make your brand impossible to scroll past.">
 <meta name="twitter:image" content="https://www.spacegrowmedia.com/og-image.jpg">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Sora:wght@300..600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Sora:wght@300..600&display=swap"></noscript>
+<!-- Fonts are served from the site; the three visible above the fold are preloaded so they land before first paint. -->
+<link rel="preload" href="/fonts/sora.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/instrument-serif-italic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
 <script>document.documentElement.classList.add('js');setTimeout(function(){var s=document.getElementById('site');if(s)s.classList.add('visible')},9000)</script>
 <link rel="stylesheet" href="/styles.css">
 
@@ -167,7 +167,7 @@
   </section>
   <div class="hud-panel hud-tele"><span>Distance from the Sun</span><b id="tele-au">1.00 AU</b><small id="tele-light">8.3 light-minutes</small></div>
   <p class="hud-msg" id="hud-msg"></p>
-  <p class="hud-keys" id="hud-keys"><b>Drag</b> look around <b>W A S D</b> fly <b>Q E</b> down / up <b>Shift</b> boost <b>Click</b> a planet to travel <b>Shift</b> boost <b>Click</b> a planet to travel <b>Esc</b> back to site</p>
+  <p class="hud-keys" id="hud-keys"><b>Drag</b> look around <b>W A S D</b> fly <b>Q E</b> down / up <b>Shift</b> boost <b>Click</b> a planet to travel <b>Esc</b> back to site</p>
   <nav class="hud-bodies" aria-label="Travel to">
     <button type="button" data-go="overview" style="--c:#5ee7ff">Overview</button><button type="button" data-go="Sun" style="--c:#ffb347">Sun</button><button type="button" data-go="Mercury" style="--c:#a9a29a">Mercury</button><button type="button" data-go="Venus" style="--c:#e8c98c">Venus</button><button type="button" data-go="Earth" style="--c:#4c9cff">Earth</button><button type="button" data-go="Moon" style="--c:#cfcfcf">Moon</button><button type="button" data-go="Mars" style="--c:#e2673b">Mars</button><button type="button" data-go="Jupiter" style="--c:#d9a774">Jupiter</button><button type="button" data-go="Saturn" style="--c:#e6d29c">Saturn</button><button type="button" data-go="Uranus" style="--c:#9fe3e8">Uranus</button><button type="button" data-go="Neptune" style="--c:#5277ff">Neptune</button>
   </nav>
@@ -330,7 +330,6 @@
           <button type="button" class="tq-btn" id="tq-next" aria-label="Next testimonial"><svg class="i" width="18" height="18"><use href="#i-arrow"/></svg></button>
         </div>
       </div>
-    </div>
     </div>
   </div>
 </section>
@@ -541,15 +540,15 @@
       <canvas class="orbs-canvas" aria-hidden="true"></canvas>
       <a href="https://instagram.com/spacegrowmedia" target="_blank" rel="noopener" class="orb orb-ig reveal" data-net="ig" aria-label="SpaceGrow Media on Instagram">
         <span class="orb-ball"><svg class="i-solid" aria-hidden="true"><use href="#i-ig"/></svg></span>
-        <span class="handle"><svg class="i-solid" width="14" height="14" aria-hidden="true"><use href="#i-ig"/></svg>@spacegrowmedia</span>
+        <span class="handle"><svg class="i-solid" width="14" height="14" aria-hidden="true"><use href="#i-ig"/></svg>@spacegrowmedia</span>
       </a>
       <a href="https://www.linkedin.com/company/spacegrow-media/" target="_blank" rel="noopener" class="orb orb-in reveal" style="--i:1" data-net="in" aria-label="SpaceGrow Media on LinkedIn">
         <span class="orb-ball"><svg class="i-solid" aria-hidden="true"><use href="#i-in"/></svg></span>
-        <span class="handle"><svg class="i-solid" width="14" height="14" aria-hidden="true"><use href="#i-in"/></svg>LinkedIn Page</span>
+        <span class="handle"><svg class="i-solid" width="14" height="14" aria-hidden="true"><use href="#i-in"/></svg>LinkedIn Page</span>
       </a>
       <a href="https://www.facebook.com/share/1CkVVa8vD4/" target="_blank" rel="noopener" class="orb orb-fb reveal" style="--i:2" data-net="fb" aria-label="SpaceGrow Media on Facebook">
         <span class="orb-ball"><svg class="i-solid" aria-hidden="true"><use href="#i-fb"/></svg></span>
-        <span class="handle"><svg class="i-solid" width="14" height="14" aria-hidden="true"><use href="#i-fb"/></svg>Facebook Page</span>
+        <span class="handle"><svg class="i-solid" width="14" height="14" aria-hidden="true"><use href="#i-fb"/></svg>Facebook Page</span>
       </a>
     </div>
   </div>

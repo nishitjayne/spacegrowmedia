@@ -110,9 +110,13 @@ function startReveals() {
 /* ───────── 3D scene: starts loading during the intro so Earth is ready when it ends ───────── */
 let scenePromise = null;
 let universe = null;
+// Resolves once the browser has painted a frame. The scene's set-up is heavy; starting it after a paint
+// keeps it from holding back what is already on screen.
+const afterPaint = () => new Promise((r) => requestAnimationFrame(() => setTimeout(r)));
 function bootScene() {
   if (scenePromise) return scenePromise;
-  scenePromise = import('./scene.js')
+  scenePromise = afterPaint()
+    .then(() => import('./scene.js'))
     .then((m) => m.initScene())
     .then((u) => { if (u) { universe = u; $('space-canvas').classList.add('on'); } return u; })
     .catch((e) => console.warn('3D scene failed:', e));
@@ -144,25 +148,29 @@ function runIntro() {
   const intro = $('intro');
   if (!intro || reduceMotion || (store.get('sg-intro') && !/[?&]intro\b/.test(location.search))) { intro?.remove(); return finishIntro(); }
   lenis?.stop();
-  bootScene();
   $('intro-skip').addEventListener('click', finishIntro);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finishIntro(); });
-  // While Earth loads, a quiet "prepare for takeoff" line with real texture progress; shown only if it takes a while.
+  // The name is up as soon as its font is (self-hosted and preloaded), with a quiet "prepare for takeoff"
+  // line and real texture progress beneath it while Earth loads.
+  const name = document.fonts.ready.then(showName);
+  const scene = name.then(afterPaint).then(bootScene); // the name paints first, then Earth starts loading
   const load = $('intro-load');
   const onLoad = (e) => load.style.setProperty('--p', e.detail.toFixed(3));
   addEventListener('sg-load', onLoad);
   const shown = setTimeout(() => load.classList.add('on'), 400);
-  Promise.race([scenePromise, new Promise((r) => setTimeout(r, 9000))]).then((u) => {
+  Promise.race([scene, new Promise((r) => setTimeout(r, 9000))]).then(async (u) => {
     clearTimeout(shown);
     removeEventListener('sg-load', onLoad);
     load.classList.remove('on');
-    document.fonts.ready.then(() => { if (!introDone) playName(u); }); // measure the nav wordmark in its real font
+    const n = await name;
+    if (n && !introDone) launch(n, u);
   });
 }
 
-// The name hangs above the horizon as the Sun clears it, then settles onto the nav's own wordmark.
-function playName(u) {
-  const word = document.querySelector('.nav .brand-word'), r = word.getBoundingClientRect();
+// The brand name above where the horizon will be: a copy of the nav wordmark, so it can land on it exactly.
+function showName() {
+  if (introDone) return null;
+  const word = document.querySelector('.nav .brand-word'), r = word.getBoundingClientRect(); // measured in its real font
   const name = word.cloneNode(true);
   name.classList.add('intro-name');
   Object.assign(name.style, { left: `${r.left}px`, top: `${r.top}px` });
@@ -172,9 +180,14 @@ function playName(u) {
   small.style.transform = `translateX(${(w - small.offsetWidth + parseFloat(getComputedStyle(small).letterSpacing)) / 2}px)`;
   const k = Math.min(3.2, (innerWidth * 0.7) / w);
   name.style.transform = `translate(${innerWidth / 2 - r.left - w / 2}px, ${innerHeight * 0.36 - r.top - h / 2}px) scale(${k})`;
-  const SHOW = u ? 1.8 : 0.3, DOCK = SHOW + 2.6;
+  requestAnimationFrame(() => name.classList.add('on'));
+  return { name, small, word };
+}
+
+// The Sun clears Earth's limb beneath the name, then the name settles onto the nav's own wordmark.
+function launch({ name, small, word }, u) {
+  const DOCK = u ? 4.4 : 0.8;
   if (u) { u.sunrise(0, -0.24, DOCK, 2.6); $('intro').classList.add('sky'); }
-  setTimeout(() => name.classList.add('on'), SHOW * 1000);
   setTimeout(() => {
     if (introDone) return;
     name.classList.add('dock');
@@ -504,7 +517,7 @@ function initQuotes() {
   if (!root) return;
   const slides = $$('.tq-slide', root), tabs = $$('.tq-tab', root), stage = $('tq-stage'), btn = $('tq-pause');
   const DUR = 7000;
-  let i = 0, t0 = performance.now(), elapsed = 0, hover = false, paused = reduceMotion;
+  let i = 0, t0 = performance.now(), elapsed = 0, hover = false, keyed = false, paused = reduceMotion;
   const show = (n, manual) => {
     const back = manual === 'back';
     root.classList.toggle('tq-back', back);
@@ -530,13 +543,14 @@ function initQuotes() {
   stage.addEventListener('pointerup', (e) => { if (sx === null) return; const d = e.clientX - sx; sx = null; if (Math.abs(d) > 40) (d < 0 ? show(i + 1, true) : show(i - 1, 'back')); });
   btn.addEventListener('click', () => setPaused(!paused));
   tabs.forEach((b) => b.addEventListener('click', () => show(+b.dataset.i, +b.dataset.i < i ? 'back' : true)));
-  const hold = (v) => () => { hover = v; if (!v) t0 = performance.now() - elapsed; };
-  root.addEventListener('pointerenter', hold(true));
-  root.addEventListener('pointerleave', hold(false));
-  root.addEventListener('focusin', hold(true));
-  root.addEventListener('focusout', hold(false));
+  // Reading the quote holds it; the controls never do, so a clicked slide starts its timer at once.
+  // Keyboard focus also holds it (W3C carousel pattern); a mouse click's focus does not.
+  stage.addEventListener('pointerenter', () => { hover = true; });
+  stage.addEventListener('pointerleave', () => { hover = false; });
+  root.addEventListener('focusin', (e) => { keyed = e.target.matches(':focus-visible'); });
+  root.addEventListener('focusout', () => { keyed = false; });
   (function tick(now) {
-    if (paused || hover) t0 = now - elapsed; else elapsed = now - t0;
+    if (paused || hover || keyed) t0 = now - elapsed; else elapsed = now - t0;
     const p = Math.min(1, elapsed / DUR);
     tabs[i].style.setProperty('--p', p.toFixed(3));
     if (p >= 1) show(i + 1, false);

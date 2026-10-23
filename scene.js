@@ -642,7 +642,31 @@ class Universe {
       }));
       ring.rotation.x = Math.PI / 2;
       ring.renderOrder = 1;
-      if (file) this.sharp.push([ring.material.uniforms.uMap, 'value', '/textures/ss/saturn-ring-4k.png']);
+      if (file) {
+        this.sharp.push([ring.material.uniforms.uMap, 'value', '/textures/ss/saturn-ring-4k.png']);
+        // The rings' shadow on the globe: follow the sunlight back to the ring plane and use the ring's own opacity
+        // there, so dense rings cast dark bands and the Cassini Division lets light through. Shares the ring's map.
+        const u = ring.material.uniforms;
+        body.material.onBeforeCompile = (sh) => {
+          Object.assign(sh.uniforms, { uRingMap: u.uMap, uRingC: u.uCenter, uRingN: { value: body.userData.pole }, uRingR: { value: new THREE.Vector2(p.r * inR, p.r * outR) } });
+          sh.vertexShader = sh.vertexShader
+            .replace('#include <common>', '#include <common>\nvarying vec3 vRingW;')
+            .replace('#include <project_vertex>', '#include <project_vertex>\n  vRingW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+          sh.fragmentShader = sh.fragmentShader
+            .replace('#include <common>', '#include <common>\nuniform sampler2D uRingMap; uniform vec3 uRingC; uniform vec3 uRingN; uniform vec2 uRingR; varying vec3 vRingW;')
+            .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+  {
+    vec3 L = normalize(-vRingW); // toward the Sun at the origin
+    float dn = dot(L, uRingN), t = abs(dn) > 1e-4 ? dot(uRingC - vRingW, uRingN) / dn : -1.0;
+    float r = length(vRingW + L * t - uRingC);
+    if (t > 0.0 && r > uRingR.x && r < uRingR.y) {
+      float a = texture2D(uRingMap, vec2((r - uRingR.x) / (uRingR.y - uRingR.x), 0.5)).a;
+      reflectedLight.directDiffuse *= 1.0 - 0.9 * a;
+      reflectedLight.directSpecular *= 1.0 - 0.9 * a;
+    }
+  }`);
+        };
+      }
       axis.add(ring);
     }
     holder.add(axis);
@@ -713,7 +737,15 @@ class Universe {
     // Real time of day: if India is in darkness, swing toward the Sun so India sits on the sunrise line.
     const toSun = this.earth.position.clone().negate().normalize();
     const lit = mumbaiDir.dot(toSun);
-    const heroDir = mumbaiDir.clone().addScaledVector(toSun, THREE.MathUtils.clamp(0.75 - lit, 0, 1.5)).addScaledVector(UP, 0.12).normalize();
+    let heroDir = mumbaiDir.clone().addScaledVector(toSun, THREE.MathUtils.clamp(0.75 - lit, 0, 1.5)).normalize();
+    // At Indian night that sum would swing past the sunrise line to the far side; cap it so Mumbai always faces us.
+    const MAX_SWING = THREE.MathUtils.degToRad(55);
+    if (mumbaiDir.angleTo(heroDir) > MAX_SWING) {
+      const axis = new THREE.Vector3().crossVectors(mumbaiDir, toSun);
+      if (axis.lengthSq() < 1e-8) axis.crossVectors(mumbaiDir, UP); // Sun exactly opposite: any swing axis will do
+      heroDir = mumbaiDir.clone().applyAxisAngle(axis.normalize(), MAX_SWING);
+    }
+    heroDir.addScaledVector(UP, 0.12).normalize();
     const keys = [
       stop(this.earthBody, EARTH_R, heroDir),
       stop(this.moon, 2.73 * 1.6),

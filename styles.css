@@ -1,3 +1,9 @@
+/* Self-hosted fonts (SIL Open Font License), Latin subset; variable files cover every weight used. */
+@font-face { font-family: 'Instrument Serif'; font-style: italic; font-weight: 400; font-display: swap; src: url(/fonts/instrument-serif-italic.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Instrument Serif'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/instrument-serif.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 400 600; font-display: swap; src: url(/fonts/inter.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 400 500; font-display: swap; src: url(/fonts/jetbrains-mono.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Sora'; font-style: normal; font-weight: 300 600; font-display: swap; src: url(/fonts/sora.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 /* SpaceGrow Media v3: deep space, glass, soft light. */
 
 :root {
@@ -298,11 +304,11 @@ section, main { touch-action: pan-y; }
 .faq-q .ico::after { transform: rotate(90deg); }
 .faq-item.open .ico { transform: rotate(180deg); border-color: rgba(94, 231, 255, 0.5); background: rgba(94, 231, 255, 0.1); }
 .faq-item.open .ico::after { transform: rotate(0deg); }
-.faq-ans { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.7s var(--expo); }
+.faq-ans { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.45s var(--expo); } /* within the 0.5 s a click "owns" */
 .faq-item.open .faq-ans { grid-template-rows: 1fr; }
 .faq-ans > div { overflow: hidden; }
-.faq-ans p { padding: 0 1.25rem 1.4rem; color: var(--muted); opacity: 0; transform: translateY(-8px); transition: opacity 0.5s var(--ease), transform 0.7s var(--expo); }
-.faq-item.open .faq-ans p { opacity: 1; transform: none; transition-delay: 0.12s; }
+.faq-ans p { padding: 0 1.25rem 1.4rem; color: var(--muted); opacity: 0; transform: translateY(-8px); transition: opacity 0.35s var(--ease), transform 0.45s var(--expo); }
+.faq-item.open .faq-ans p { opacity: 1; transform: none; transition-delay: 0.08s; }
 
 /* ───────── Contact ───────── */
 .contact { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(3rem, 7vw, 6rem); align-items: start; }
@@ -350,8 +356,9 @@ footer { position: relative; padding-top: clamp(4rem, 8vw, 6rem); border-top: 1p
 #site { transform-origin: 50% 40vh; transition: opacity 1.2s var(--ease), transform 0.9s var(--expo), filter 0.9s var(--expo); }
 html.exploring #site { opacity: 0 !important; visibility: hidden; transform: scale(1.18); filter: blur(14px); transition: opacity 0.7s var(--ease), visibility 0.7s, transform 0.9s cubic-bezier(0.7, 0, 0.84, 0), filter 0.9s; }
 html.exploring #wa-float { opacity: 0 !important; visibility: hidden; }
-.explore-hud { position: fixed; inset: 0; z-index: 550; pointer-events: none; opacity: 0; transition: opacity 0.6s var(--expo); }
-html.exploring .explore-hud { opacity: 1; }
+/* Hidden (not just transparent) outside explore mode, so its buttons can't catch clicks or focus on the page. */
+.explore-hud { position: fixed; inset: 0; z-index: 550; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity 0.6s var(--expo), visibility 0s 0.6s; }
+html.exploring .explore-hud { opacity: 1; visibility: visible; transition: opacity 0.6s var(--expo); }
 .hud-panel { position: absolute; padding: 1.1rem 1.25rem; border-radius: 18px; background: rgba(5, 8, 18, 0.72); border: 1px solid var(--line-2); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 .hud-info { top: 96px; left: 24px; width: min(320px, calc(100vw - 48px)); transform: translateX(-12px); opacity: 0; transition: opacity 0.5s var(--ease), transform 0.7s var(--expo); }
 .hud-info.on { opacity: 1; transform: none; }
@@ -361,9 +368,9 @@ html.exploring .explore-hud { opacity: 1; }
 .hud-facts dt { color: var(--muted); }
 .hud-fun { margin-top: 1rem; padding-top: 0.9rem; border-top: 1px solid var(--line); }
 .hud-fun-h { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.45rem; font: 500 0.7rem/1 var(--f-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); }
-.hud-fun-h button { height: 28px; padding: 0 0.7rem; border-radius: 999px; border: 1px solid var(--line-2); color: var(--ink); font: 500 0.75rem/1 var(--f-body); letter-spacing: 0; text-transform: none; pointer-events: auto; transition: border-color 0.3s; }
+.hud-fun-h button { height: 28px; padding: 0 0.7rem; border-radius: 999px; border: 1px solid var(--line-2); color: var(--ink); font: 500 0.75rem/1 var(--f-body); letter-spacing: 0; text-transform: none; transition: border-color 0.3s; }
 .hud-fun p { font-size: 0.92rem; line-height: 1.5; color: var(--ink); min-height: 4.5em; transition: opacity 0.25s; }
-.hud-info { pointer-events: auto; }
+.hud-info.on { pointer-events: auto; } /* only while showing: hidden, it must not swallow clicks on planets behind it */
 .hud-facts dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
 .hud-tele { top: 96px; right: 24px; display: grid; justify-items: end; gap: 0.2rem; text-align: right; }
 .hud-tele span { font: 500 0.7rem/1 var(--f-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
@@ -536,7 +543,7 @@ section { padding-block: clamp(4rem, 8vw, 6.5rem); }
 .tq { max-width: 980px; margin-inline: auto; }
 .tq-stage { display: grid; }
 .tq-slide { grid-area: 1 / 1; margin: 0; padding: clamp(2rem, 4vw, 3.25rem); border-radius: var(--r); background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(20px) brightness(0.7); -webkit-backdrop-filter: blur(20px) brightness(0.7); opacity: 0; transform: translateY(14px); filter: blur(6px); visibility: hidden; transition: opacity 0.7s var(--ease), transform 0.9s var(--expo), filter 0.7s var(--ease), visibility 0.7s; display: flex; flex-direction: column; }
-.tq-slide.on { opacity: 1; transform: none; filter: none; visibility: visible; }
+.tq-slide.on { opacity: 1; transform: none; filter: none; visibility: inherit; } /* inherit: hides with the site in explore mode */
 .tq-slide::before { content: "\201C"; display: block; height: 2.6rem; font: italic 400 5rem/1 var(--f-serif); background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .tq-slide blockquote { font: 300 clamp(1.15rem, 2vw, 1.45rem)/1.6 var(--f-display); letter-spacing: -0.015em; color: var(--ink); margin: 0.5rem 0 1.75rem; max-width: 60ch; }
 .tq-slide figcaption { margin-top: auto; display: grid; gap: 0.25rem; padding-top: 1.25rem; border-top: 1px solid var(--line); }
