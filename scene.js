@@ -431,7 +431,7 @@ class Universe {
     this.ready = Promise.all([this.buildEarth(), ...PLANETS.map((p) => this.buildPlanet(p))]).then(() => {
       this.buildPath();
       this.measure();
-      r.compile(this.scene, this.camera); // compile every shader now, not mid-scroll
+      return r.compileAsync(this.scene, this.camera); // ready only once every shader has finished compiling, so no first-frame stall
     });
     this.buildWarp();
     this.vel = 0;
@@ -536,10 +536,10 @@ class Universe {
   async buildEarth() {
     const hd = !this.isMobile;
     const [day, night, spec, clouds, moonMap] = await Promise.all([
-      this.tex(`/textures/hd/earth-day-${hd ? '2k' : '1k'}.webp`),
-      this.tex(`/textures/hd/earth-night-${hd ? '2k' : '1k'}.webp`),
+      this.tex(`/textures/hd/earth-day-${hd ? '4k' : '2k'}.webp`), // 4k holds up in the low-orbit intro
+      this.tex(`/textures/hd/earth-night-${hd ? '4k' : '2k'}.webp`),
       this.tex('/textures/hd/earth-spec-1k.webp', false),
-      this.tex('/textures/hd/earth-clouds-1k.webp', false),
+      this.tex(`/textures/hd/earth-clouds-${hd ? '2k' : '1k'}.webp`, false),
       this.tex(this.res('moon')),
     ]);
     if (clouds) { clouds.wrapS = THREE.RepeatWrapping; clouds.needsUpdate = true; }

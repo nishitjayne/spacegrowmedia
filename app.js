@@ -133,9 +133,11 @@ function finishIntro() {
     else { intro.classList.add('exit'); setTimeout(() => intro.remove(), 1150); }
   }
   universe?.hurryIntro();
+  document.querySelector('.intro-name:not(.dock)')?.remove(); // skipped before the name docked
   lenis?.start();
   bootScene();
   startReveals();
+  setTimeout(initOrbs, 3000); // their WebGL start-up would stutter the intro's glide
 }
 
 function runIntro() {
@@ -164,7 +166,7 @@ function playName(u) {
   const name = word.cloneNode(true);
   name.classList.add('intro-name');
   Object.assign(name.style, { left: `${r.left}px`, top: `${r.top}px` });
-  $('intro').append(name);
+  document.body.append(name); // outside #intro, so the intro's fade never touches it
   // Heading weight with MEDIA centred first; both ease into the nav's own lockup while docking.
   const small = name.querySelector('small'), w = name.offsetWidth, h = name.offsetHeight;
   small.style.transform = `translateX(${(w - small.offsetWidth + parseFloat(getComputedStyle(small).letterSpacing)) / 2}px)`;
@@ -177,7 +179,13 @@ function playName(u) {
     if (introDone) return;
     name.classList.add('dock');
     name.style.transform = small.style.transform = 'none';
-    setTimeout(finishIntro, 900);
+    setTimeout(() => {
+      // One object end to end: the name covers the hidden nav wordmark until the page has faded in,
+      // then the two swap in the same frame.
+      word.style.visibility = 'hidden';
+      finishIntro();
+      setTimeout(() => { word.style.visibility = ''; name.remove(); }, 1400);
+    }, 900);
   }, DOCK * 1000);
 }
 
@@ -537,7 +545,6 @@ function initQuotes() {
 
 $('year').textContent = new Date().getFullYear();
 initQuotes();
-initOrbs();
 initExplore();
 initSpaceDrag();
 initNav();
