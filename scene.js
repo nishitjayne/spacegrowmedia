@@ -237,7 +237,7 @@ varying vec2 vUv; void main(){ vUv = uv * 2.0 - 1.0; gl_Position = projectionMat
   fragmentShader: `
 #include <logdepthbuf_pars_fragment>
 ${NOISE}
-    uniform float uTime; uniform float uR; uniform float uFade; varying vec2 vUv;
+    uniform float uTime; uniform float uR; uniform float uFade; uniform float uProm; varying vec2 vUv;
     void main(){
       float r = length(vUv);
       float a = atan(vUv.y, vUv.x);
@@ -260,7 +260,7 @@ ${NOISE}
         prom += exp(-d * 60.0) * step(da, 0.22) * life * (0.6 + 0.4 * fbm(vec3(a * 12.0, h * 20.0, t * 0.6)));
       }
       float inside = smoothstep(uR - 0.01, uR + 0.005, r);
-      vec3 col = vec3(1.0, 0.62, 0.3) * corona * 0.22 + vec3(1.0, 0.7, 0.4) * flares * 0.18 + vec3(1.0, 0.45, 0.2) * prom * 0.75;
+      vec3 col = vec3(1.0, 0.62, 0.3) * corona * 0.22 + vec3(1.0, 0.7, 0.4) * flares * 0.18 + vec3(1.0, 0.45, 0.2) * prom * 0.75 * uProm;
       col *= inside * smoothstep(1.0, 0.7, r) * uFade;
       
 #include <logdepthbuf_fragment>
@@ -398,6 +398,7 @@ class Universe {
     this.flyVel = new THREE.Vector3();
     this.flight = null;
     this.jump = null;
+    this.intro = null;
     this.ray = new THREE.Raycaster();
     this.lookM = new THREE.Matrix4();
     this.tmpQ = new THREE.Quaternion();
@@ -417,7 +418,8 @@ class Universe {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(this.fov(), window.innerWidth / window.innerHeight, 0.5, 60000);
     this.scene.add(this.camera);
-    this.loader = new THREE.TextureLoader();
+    // Texture progress drives the intro's loading bar.
+    this.loader = new THREE.TextureLoader(new THREE.LoadingManager(undefined, (url, n, total) => window.dispatchEvent(new CustomEvent('sg-load', { detail: n / total }))));
 
     this.buildSky();
     this.buildStars();
@@ -493,7 +495,7 @@ class Universe {
     this.sun = new THREE.Group();
     this.sunMat = new THREE.ShaderMaterial({ ...SUN, uniforms: { uTime: { value: 0 } } });
     const body = new THREE.Mesh(new THREE.SphereGeometry(SUN_R, this.isMobile ? 64 : 128, this.isMobile ? 32 : 64), this.sunMat);
-    this.coronaMat = new THREE.ShaderMaterial({ ...CORONA, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: { uTime: { value: 0 }, uR: { value: 1 / 3.2 }, uFade: { value: 1 } } });
+    this.coronaMat = new THREE.ShaderMaterial({ ...CORONA, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: { uTime: { value: 0 }, uR: { value: 1 / 3.2 }, uFade: { value: 1 }, uProm: { value: 1 } } });
     this.corona = new THREE.Mesh(new THREE.PlaneGeometry(SUN_R * 6.4, SUN_R * 6.4), this.coronaMat);
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({
       map: glowTexture([[0, 'rgba(255,220,170,0.9)'], [0.2, 'rgba(255,150,70,0.35)'], [0.5, 'rgba(255,90,30,0.08)'], [1, 'rgba(255,60,10,0)']]),
@@ -760,6 +762,8 @@ class Universe {
     let travelSpeed = 0;
     if (!this.posCurve) {
       cam.lookAt(0, 0, 0);
+    } else if (this.intro) {
+      this.introFrame();
     } else if (this.explore) {
       travelSpeed = this.fly(dt);
     } else {
@@ -818,6 +822,7 @@ class Universe {
     if (this.stopRoots) {
       const seg = Math.min(5, Math.floor(this.curveU(this.progress()) * 6 + 0.02));
       const keep = this.explore ? null : new Set([this.stopRoots[seg], this.stopRoots[seg + 1]]);
+      if (keep && this.intro) keep.add(this.sun);
       for (const p of this.pickables) {
         const root = p.userData.root;
         root.visible = !keep || keep.has(root);
@@ -826,6 +831,58 @@ class Universe {
     }
     this.updateLabels();
     this.renderer.render(this.scene, cam);
+  }
+
+  /* ───────── intro: sunrise over Earth's limb, then a glide down to the hero view ───────── */
+  // sx, sy: where on screen (NDC) the Sun should rise, so the logo ring can frame it.
+  sunrise(sx, sy, glideAt, glideFor) {
+    this.intro = { start: performance.now(), sx, sy, glideAt, glideFor, q: new THREE.Quaternion(), q1: new THREE.Quaternion(), qh: new THREE.Quaternion() };
+    this.sun.scale.setScalar(0.035); // close to the real ~0.5° Sun seen from near Earth
+    this.coronaMat.uniforms.uProm.value = 0; // prominence loops are lost at this size
+    this.labelRoot.style.visibility = 'hidden';
+  }
+
+  // Skipped: start the glide down to the hero now, and make it quick.
+  hurryIntro() {
+    const it = this.intro;
+    if (!it) return;
+    const t = (performance.now() - it.start) / 1000;
+    if (t < it.glideAt) { it.glideAt = t; it.glideFor = 1.4; }
+  }
+
+  sunScreen() { return new THREE.Vector3().project(this.camera); }
+
+  introFrame() {
+    const it = this.intro, cam = this.camera, R = EARTH_R, E = this.earth.position;
+    const t = (performance.now() - it.start) / 1000;
+    const ease = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * x * (x * (x * 6 - 15) + 10); };
+    // Night side, with the Sun straight behind Earth; rising along n brings it over the limb.
+    const toSun = this.tmp.side.copy(E).negate().normalize();
+    const n = this.tmp.q.copy(UP).addScaledVector(toSun, -UP.dot(toSun)).normalize();
+    const rise = ease(t / 2.6);
+    const start = this.tmp.pos.copy(E).addScaledVector(toSun, -R * (2.7 - 0.15 * rise)).addScaledVector(n, R * (0.94 + 0.16 * rise));
+    // Aim so the Sun lands at (sx, sy): look straight at it, then turn by the screen offset.
+    const th = Math.tan((cam.fov * Math.PI) / 360);
+    this.lookM.lookAt(start, this.tmp.off.set(0, 0, 0), UP);
+    it.q.setFromRotationMatrix(this.lookM).multiply(it.q1.setFromUnitVectors(this.tmp.look.set(it.sx * th * cam.aspect, it.sy * th, -1).normalize(),new THREE.Vector3(0, 0, -1)));
+    const g = ease((t - it.glideAt) / it.glideFor);
+    if (g <= 0) { cam.position.copy(start); cam.quaternion.copy(it.q); return; }
+    // Glide round Earth (never through it) to the hero pose, easing distance in log space.
+    const hero = this.posCurve.getPoint(0), heroLook = this.lookCurve.getPoint(0);
+    const a = start.clone().sub(E), b = hero.clone().sub(E);
+    const la = a.length(), lb = b.length();
+    const dir = a.normalize().applyQuaternion(new THREE.Quaternion().slerpQuaternions(new THREE.Quaternion(), new THREE.Quaternion().setFromUnitVectors(a, b.clone().normalize()), g));
+    cam.position.copy(E).addScaledVector(dir, Math.exp(Math.log(la) + (Math.log(lb) - Math.log(la)) * g) * (1 + 0.25 * Math.sin(Math.PI * g)));
+    this.lookM.lookAt(hero, heroLook, UP);
+    cam.quaternion.copy(it.q).slerp(it.qh.setFromRotationMatrix(this.lookM), g);
+    if (g >= 1) {
+      this.intro = null;
+      this.look.copy(heroLook);
+      this.view.yaw = this.view.pitch = 0;
+      this.sun.scale.setScalar(1);
+      this.coronaMat.uniforms.uProm.value = 1;
+      this.labelRoot.style.visibility = '';
+    }
   }
 
   /* ───────── interaction ───────── */

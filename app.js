@@ -132,6 +132,7 @@ function finishIntro() {
     if (reduceMotion) intro.remove();
     else { intro.classList.add('exit'); setTimeout(() => intro.remove(), 1150); }
   }
+  universe?.hurryIntro();
   lenis?.start();
   bootScene();
   startReveals();
@@ -139,9 +140,9 @@ function finishIntro() {
 
 function runIntro() {
   const intro = $('intro');
-  if (!intro || reduceMotion || store.get('sg-intro')) { intro?.remove(); return finishIntro(); }
+  if (!intro || reduceMotion || (store.get('sg-intro') && !/[?&]intro\b/.test(location.search))) { intro?.remove(); return finishIntro(); }
   lenis?.stop();
-  requestAnimationFrame(() => setTimeout(bootScene, 250));
+  bootScene();
   $('intro-skip').addEventListener('click', finishIntro);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finishIntro(); });
 
@@ -169,46 +170,87 @@ function runIntro() {
     requestAnimationFrame(draw);
   })(t0);
 
-  const trail = $('s-trail'), guide = $('s-path-guide'), rocket = $('logo-rocket'), ring = $('logo-ring');
-  const burst = $('burst-canvas').getContext('2d');
-  const len = guide.getTotalLength();
-  trail.style.strokeDasharray = len; trail.style.strokeDashoffset = len;
-  const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
-  const PIXELS = [[-22,8,14,'#6f5bff'],[-10,16,12,'#4f7dff'],[-30,-2,10,'#9b6bff'],[-18,20,10,'#5a63ff'],[-38,8,8,'#7f5cff'],[-28,18,8,'#3d4fd6'],[-8,26,8,'#5e7bff'],[-44,0,6,'#8f6bff'],[-36,20,6,'#3a3fb8'],[2,20,6,'#5ee7ff'],[-50,10,5,'#a07cff'],[-16,30,5,'#5b6dff'],[-42,28,4,'#4a3fc0'],[-24,34,4,'#7a6cff'],[4,30,4,'#4f9dff'],[-54,22,4,'#9b7bff']];
-  let alpha = 0;
-  (function paint() {
-    burst.clearRect(0, 0, 420, 420);
-    alpha = Math.min(1, alpha + 0.05);
-    PIXELS.forEach(([ox, oy, s, c]) => { burst.globalAlpha = alpha; burst.fillStyle = c; burst.fillRect(108 + ox - s / 2, 318 + oy - s / 2, s, s); });
-    if (alpha < 1 && !introDone) requestAnimationFrame(paint);
-  })();
+  // Sunrise over Earth when the 3D scene is ready in time; otherwise the logo alone on the starfield.
+  // While Earth loads, a quiet "prepare for takeoff" stage with real texture progress; shown only if it takes a while.
+  const load = $('intro-load');
+  const onLoad = (e) => load.style.setProperty('--p', e.detail.toFixed(3));
+  addEventListener('sg-load', onLoad);
+  const shown = setTimeout(() => load.classList.add('on'), 400);
+  Promise.race([scenePromise, new Promise((r) => setTimeout(r, 9000))])
+    .then((u) => document.fonts.ready.then(() => {
+      clearTimeout(shown);
+      removeEventListener('sg-load', onLoad);
+      load.classList.remove('on');
+      if (!introDone) playLogo(u);
+    }));
+}
 
-  let angle = 0, first = true;
-  const place = (d) => {
-    const p = guide.getPointAtLength(d), n = guide.getPointAtLength(Math.min(d + 4, len));
-    const target = (Math.atan2(n.y - p.y, n.x - p.x) * 180) / Math.PI + 90;
-    if (first) { angle = target; first = false; }
-    let diff = target - angle;
-    if (diff > 180) diff -= 360; if (diff < -180) diff += 360;
-    angle += diff * 0.16;
-    rocket.setAttribute('transform', `translate(${p.x},${p.y}) rotate(${angle})`);
-    trail.style.strokeDashoffset = Math.max(0, len - d);
-  };
-  ring.style.transition = 'stroke-dashoffset 1.4s cubic-bezier(0.16,1,0.3,1)';
-  ring.style.strokeDashoffset = '0';
-  setTimeout(() => {
+// The Sun clears Earth's limb just ahead of the logo's rocket, the rocket lays the S, the wordmark settles,
+// then the mark docks into the nav logo while the camera glides down to the hero view.
+function playLogo(u) {
+  const logo = $('intro-logo');
+  const span = (t, a, b) => Math.max(0, Math.min(1, (t - a) / (b - a)));
+  const out = (x) => 1 - Math.pow(1 - x, 3);
+  const inOut = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+  const back = (x) => 1 + 2.2 * Math.pow(x - 1, 3) + 1.2 * Math.pow(x - 1, 2);
+  const ringAt = () => new DOMPoint(305, 510).matrixTransform(logo.getScreenCTM()); // centre of the logo's ring
+  const arcs = [$('arcA'), $('arcB')].map((p) => ({ p, len: p.getTotalLength() }));
+  const reveal = $('revealPath'), revLen = reveal.getTotalLength();
+  const rocket = $('rocket'), flame = $('flame'), bar = $('bar');
+  const pixels = [...$('pixels').children].map((r) => ({ r, x: +r.getAttribute('x'), y: +r.getAttribute('y'), dx: (Math.random() - 0.3) * 260, dy: (Math.random() - 0.5) * 220, rot: (Math.random() - 0.5) * 240, d: Math.random() * 0.25 }));
+  const words = [...$('words').children].filter((w) => w.tagName === 'text');
+  const LOGO = u ? 1.1 : 0.2, DOCK = LOGO + 3.6, GLIDE = 2.6;
+  logo.classList.add('play');
+  if (u) {
+    const c = new DOMPoint(540, 232).matrixTransform(logo.getScreenCTM()); // just past the rocket's nose
+    u.sunrise((c.x / innerWidth) * 2 - 1, 1 - (c.y / innerHeight) * 2, DOCK, GLIDE);
+    $('intro').classList.add('sky');
+  }
+  let angle = 0;
+  const t0 = performance.now();
+  (function frame(now) {
     if (introDone) return;
-    rocket.style.transition = 'opacity 0.3s'; rocket.style.opacity = '1'; place(0);
-    const s0 = performance.now();
-    (function fly(now) {
-      if (introDone) return;
-      const t = Math.min((now - s0) / 2000, 1);
-      place(ease(t) * len);
-      if (t < 1) requestAnimationFrame(fly);
-    })(s0);
-    setTimeout(() => { if (!introDone) $('logo-reveal').classList.add('on'); }, 1500);
-    setTimeout(finishIntro, 3300);
-  }, 450);
+    const t = (now - t0) / 1000 - LOGO;
+    const ring = inOut(span(t, 0, 1.4));
+    arcs.forEach(({ p, len }) => { p.style.strokeDasharray = len; p.style.strokeDashoffset = len * (1 - ring); });
+    for (const px of pixels) {
+      const k = back(span(t, 0.4 + px.d, 1.2 + px.d));
+      px.r.setAttribute('transform', `translate(${(px.dx * (1 - k)).toFixed(2)} ${(px.dy * (1 - k)).toFixed(2)}) rotate(${(px.rot * (1 - k)).toFixed(1)} ${px.x + 8} ${px.y + 8})`);
+      px.r.style.opacity = span(t, 0.4 + px.d, 0.7 + px.d);
+    }
+    // The rocket lifts off from the pixel cloud and lays the ribbon behind it.
+    const fly = inOut(span(t, 0.9, 2.9));
+    const d = fly * revLen;
+    reveal.style.strokeDasharray = revLen;
+    reveal.style.strokeDashoffset = revLen - d;
+    const pt = reveal.getPointAtLength(Math.max(d, 0.01)), ahead = reveal.getPointAtLength(Math.min(d + 6, revLen));
+    const target = fly >= 0.999 ? 42 : (Math.atan2(ahead.y - pt.y, ahead.x - pt.x) * 180) / Math.PI + 90;
+    if (t < 0.95) angle = target;
+    angle += (((target - angle + 540) % 360) - 180) * 0.22;
+    rocket.setAttribute('transform', `translate(${pt.x.toFixed(2)},${pt.y.toFixed(2)}) rotate(${angle.toFixed(2)}) scale(0.86)`);
+    rocket.style.opacity = span(t, 0.8, 1.0);
+    flame.style.opacity = t > 0.9 && t < 3.0 ? 0.9 : Math.max(0, 0.9 - (t - 3.0) * 2);
+    flame.setAttribute('transform', `scale(1, ${(0.8 + Math.random() * 0.5).toFixed(2)})`);
+    words.forEach((w, n) => {
+      const k = out(span(t, 2.4 + n * 0.14, 3.2 + n * 0.14));
+      w.style.opacity = k;
+      w.setAttribute('transform', `translate(0 ${((1 - k) * 26).toFixed(2)})`);
+    });
+    bar.setAttribute('width', 198 * out(span(t, 3.0, 3.5)));
+    if (t < DOCK - LOGO) requestAnimationFrame(frame);
+    else dock();
+  })(t0);
+
+  // The ring and S shrink onto the nav mark; rocket, pixels and words hand over to the nav wordmark.
+  function dock() {
+    const mark = document.querySelector('.nav .brand-mark').getBoundingClientRect();
+    const c = ringAt(), box = logo.getBoundingClientRect();
+    const s = (22.5 * (mark.width / 50)) / (185 * logo.getScreenCTM().a); // nav ring: r 135 in a 300-unit box
+    logo.style.transformOrigin = `${c.x - box.left}px ${c.y - box.top}px`;
+    logo.style.transform = `translate(${mark.left + mark.width * 0.483 - c.x}px, ${mark.top + mark.height * 0.5 - c.y}px) scale(${s})`;
+    logo.classList.add('docking');
+    setTimeout(finishIntro, 900);
+  }
 }
 
 /* ───────── Navigation ───────── */
