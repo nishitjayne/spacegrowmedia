@@ -163,17 +163,20 @@ function playName(u) {
   const word = document.querySelector('.nav .brand-word'), r = word.getBoundingClientRect();
   const name = word.cloneNode(true);
   name.classList.add('intro-name');
-  Object.assign(name.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px` });
-  const k = Math.min(3.2, (innerWidth * 0.7) / r.width);
-  name.style.transform = `translate(${innerWidth / 2 - r.left - r.width / 2}px, ${innerHeight * 0.36 - r.top - r.height / 2}px) scale(${k})`;
+  Object.assign(name.style, { left: `${r.left}px`, top: `${r.top}px` });
   $('intro').append(name);
+  // Heading weight with MEDIA centred first; both ease into the nav's own lockup while docking.
+  const small = name.querySelector('small'), w = name.offsetWidth, h = name.offsetHeight;
+  small.style.transform = `translateX(${(w - small.offsetWidth + parseFloat(getComputedStyle(small).letterSpacing)) / 2}px)`;
+  const k = Math.min(3.2, (innerWidth * 0.7) / w);
+  name.style.transform = `translate(${innerWidth / 2 - r.left - w / 2}px, ${innerHeight * 0.36 - r.top - h / 2}px) scale(${k})`;
   const SHOW = u ? 1.8 : 0.3, DOCK = SHOW + 2.6;
   if (u) { u.sunrise(0, -0.24, DOCK, 2.6); $('intro').classList.add('sky'); }
   setTimeout(() => name.classList.add('on'), SHOW * 1000);
   setTimeout(() => {
     if (introDone) return;
     name.classList.add('dock');
-    name.style.transform = 'none';
+    name.style.transform = small.style.transform = 'none';
     setTimeout(finishIntro, 900);
   }, DOCK * 1000);
 }

@@ -132,7 +132,9 @@ em, .serif { font-family: var(--f-serif); font-style: italic; font-weight: 400; 
 .intro-load i { width: 160px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, #5ee7ff, #8a3dff) 0 0 / calc(var(--p, 0) * 100%) 100% no-repeat, rgba(255, 255, 255, 0.1); transition: background-size 0.4s var(--ease); }
 .intro-name { position: fixed; z-index: 2; opacity: 0; filter: blur(10px); text-shadow: 0 0 24px rgba(94, 231, 255, 0.3); transition: opacity 1.4s var(--ease), filter 1.4s var(--ease); }
 .intro-name.on { opacity: 1; filter: none; }
-.intro-name.dock { transition: transform 1.3s cubic-bezier(0.65, 0, 0.35, 1), text-shadow 1.3s; text-shadow: none; }
+#intro .intro-name { font-weight: 400; }
+#intro .intro-name small { width: max-content; transition: transform 1.3s cubic-bezier(0.65, 0, 0.35, 1); }
+#intro .intro-name.dock { font-weight: 600; text-shadow: none; transition: transform 1.3s cubic-bezier(0.65, 0, 0.35, 1), font-weight 1.3s cubic-bezier(0.65, 0, 0.35, 1), text-shadow 1.3s; }
 .intro-skip { position: absolute; right: var(--gut); bottom: 30px; z-index: 4; min-height: 44px; padding: 0 1.2rem; border-radius: 999px; border: 1px solid var(--line-2); color: var(--muted); font: 500 0.75rem var(--f-mono); letter-spacing: 0.14em; text-transform: uppercase; transition: color 0.3s, border-color 0.3s; }
 #intro.exit { animation: intro-fade 0.9s var(--ease) forwards; }
 @keyframes intro-fade { to { opacity: 0; visibility: hidden; } }
