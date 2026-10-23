@@ -380,11 +380,15 @@ html.exploring .explore-hud { opacity: 1; visibility: visible; transition: opaci
 .hud-msg.on { opacity: 1; }
 .hud-bodies { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; gap: 0.3rem; max-width: calc(100vw - 440px); padding: 0.35rem; border-radius: 999px; background: rgba(5, 8, 18, 0.75); border: 1px solid var(--line-2); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); overflow-x: auto; scrollbar-width: none; pointer-events: auto; }
 .hud-bodies::-webkit-scrollbar { display: none; }
-.hud-bodies button { flex: none; display: inline-flex; align-items: center; gap: 0.45rem; height: 38px; padding: 0 0.85rem; border-radius: 999px; color: var(--ink-2); font-size: 0.86rem; font-weight: 500; white-space: nowrap; transition: background-color 0.25s, color 0.25s; }
+.hud-bodies { -webkit-mask-image: linear-gradient(90deg, var(--lc, #000), #000 var(--l, 1px), #000 calc(100% - var(--r, 1px)), var(--rc, #000)); mask-image: linear-gradient(90deg, var(--lc, #000), #000 var(--l, 1px), #000 calc(100% - var(--r, 1px)), var(--rc, #000)); }
+.hud-bodies.fade-l { --lc: transparent; --l: 56px; }
+.hud-bodies.fade-r { --rc: transparent; --r: 56px; }
+.hud-bodies button { flex: none; display: inline-flex; align-items: center; gap: 0.45rem; height: 38px; padding: 0 0.78rem; border-radius: 999px; color: var(--ink-2); font-size: 0.86rem; font-weight: 500; white-space: nowrap; transition: background-color 0.25s, color 0.25s; }
 .hud-bodies button::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c, #9aa); box-shadow: 0 0 8px var(--c, #9aa); }
 .hud-bodies button[aria-current="true"] { background: rgba(255, 255, 255, 0.12); color: var(--ink); }
-.hud-keys { position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%); display: flex; flex-wrap: nowrap; align-items: center; gap: 0.5rem 0.7rem; padding: 0.55rem 1rem; border-radius: 999px; background: rgba(5, 8, 18, 0.6); font-size: 0.82rem; color: var(--ink-2); white-space: nowrap; transition: opacity 0.8s var(--ease); }
+.hud-keys { position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.45rem 0.9rem; width: max-content; max-width: calc(100vw - 48px); padding: 0.55rem 1rem; border-radius: 999px; background: rgba(5, 8, 18, 0.6); font-size: 0.82rem; color: var(--ink-2); white-space: nowrap; transition: opacity 0.8s var(--ease); }
 .hud-keys.faded { opacity: 0; }
+.hud-keys > span { display: inline-flex; align-items: center; gap: 0.45rem; } /* a key never wraps away from its label */
 .hud-keys b { font: 500 0.72rem/1 var(--f-mono); padding: 0.28rem 0.42rem; border-radius: 6px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--line-2); color: var(--ink); }
 .hud-help { position: absolute; right: 24px; bottom: 24px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line-2); background: rgba(5, 8, 18, 0.75); color: var(--ink); font-weight: 600; pointer-events: auto; transition: border-color 0.3s; }
 .crosshair { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.35); }

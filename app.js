@@ -393,6 +393,22 @@ function initSpaceDrag() {
   document.addEventListener('pointerup', end);
   document.addEventListener('pointercancel', end);
   window.addEventListener('blur', end);
+  // Trackpads: in explore mode, hold Space and move to look around, like holding the button down.
+  let held = null;
+  document.addEventListener('keydown', (e) => {
+    if (e.code !== 'Space' || e.repeat || !exploring || !universe) return;
+    held = { x: null, y: null, t: performance.now() };
+    document.documentElement.classList.add('grabbing');
+  });
+  const letGo = () => { if (held) { held = null; document.documentElement.classList.remove('grabbing'); } };
+  document.addEventListener('keyup', (e) => { if (e.code === 'Space') letGo(); });
+  window.addEventListener('blur', letGo);
+  document.addEventListener('pointermove', (e) => {
+    if (!held || drag) return;
+    const now = performance.now();
+    if (held.x !== null) universe.drag(e.clientX - held.x, e.clientY - held.y, (now - held.t) / 1000);
+    held.x = e.clientX; held.y = e.clientY; held.t = now;
+  }, { passive: true });
 }
 
 /* Explore mode: the site steps aside and space becomes free to fly. */
@@ -465,7 +481,7 @@ function setExplore(on) {
   universe.setExplore(on);
   universe.onArrive = showInfo;
   startTelemetry(on);
-  if (on) flashKeys(); else { $('hud-info').classList.remove('on'); clearTimeout(funTimer); funName = ''; }
+  if (on) { flashKeys(); barEdges(); } else { $('hud-info').classList.remove('on'); clearTimeout(funTimer); funName = ''; }
   const flash = $('jump-flash');
   flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go');
   document.documentElement.classList.toggle('exploring', on);
@@ -474,7 +490,15 @@ function setExplore(on) {
   if (on) { lenis?.stop(); document.body.style.overflow = 'hidden'; } else { lenis?.start(); document.body.style.overflow = ''; }
   track(on ? 'explore_open' : 'explore_close');
 }
+// When the planet bar is wider than the screen it scrolls: faded edges say "more this way" instead of cutting a name.
+function barEdges() {
+  const bar = document.querySelector('.hud-bodies');
+  bar.classList.toggle('fade-l', bar.scrollLeft > 2);
+  bar.classList.toggle('fade-r', bar.scrollLeft + bar.clientWidth < bar.scrollWidth - 2);
+}
 function initExplore() {
+  document.querySelector('.hud-bodies').addEventListener('scroll', barEdges, { passive: true });
+  addEventListener('resize', barEdges);
   $('explore-toggle').addEventListener('click', () => setExplore(!exploring));
   $('explore-nav').addEventListener('click', () => setExplore(true));
   document.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => {
@@ -484,8 +508,6 @@ function initExplore() {
   }));
   $('hud-help').addEventListener('click', () => flashKeys());
   $('fun-next').addEventListener('click', () => showFun());
-  // Steering pauses while the pointer is over the HUD, so reaching for a button doesn't spin the view.
-  document.addEventListener('pointermove', (e) => { if (universe) universe.steerHold = !!(e.target instanceof Element && e.target.closest('.hud-bodies, .hud-help, .explore-btn, .hud-panel, .hud-info')); }, { passive: true });
   $('explore-mob').addEventListener('click', () => { $('close-mob').click(); setTimeout(() => setExplore(true), 350); });
   const keyName = (e) => (e.key.length === 1 ? e.key.toLowerCase() : e.key);
   document.addEventListener('keydown', (e) => {
@@ -497,7 +519,13 @@ function initExplore() {
     if (/^(Arrow|w$|a$|s$|d$|q$|e$| $)/.test(keyName(e))) e.preventDefault();
   });
   document.addEventListener('keyup', (e) => { if (universe) { universe.keys[keyName(e)] = false; universe.keys.Shift = e.shiftKey; } });
-  window.addEventListener('wheel', (e) => { if (exploring) { e.preventDefault(); universe.thrust(-e.deltaY * 0.35); } }, { passive: false });
+  // Wheel and two-finger swipe: up/down flies, left/right turns. A pinch (ctrlKey) flies too; its steps are much smaller.
+  window.addEventListener('wheel', (e) => {
+    if (!exploring || e.target.closest?.('.hud-bodies')) return; // over the planet bar, a swipe scrolls the bar
+    e.preventDefault();
+    universe.thrust(-e.deltaY * (e.ctrlKey ? 3 : 0.35));
+    if (e.deltaX && !e.ctrlKey) universe.drag(-e.deltaX, 0, 1 / 60);
+  }, { passive: false });
   window.addEventListener('blur', () => { if (universe) universe.keys = {}; });
 }
 

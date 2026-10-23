@@ -387,7 +387,6 @@ class Universe {
   constructor(canvas) {
     this.canvas = canvas;
     this.isMobile = Math.min(window.innerWidth, window.innerHeight) < 700;
-    this.pointer = { x: 0, y: 0, tx: 0, ty: 0 };
     this.earthSpin = null;
     this.view = { yaw: 0, pitch: 0 };
     this.tmp = { pos: new THREE.Vector3(), look: new THREE.Vector3(), off: new THREE.Vector3(), side: new THREE.Vector3(), q: new THREE.Vector3() };
@@ -405,7 +404,6 @@ class Universe {
     this.ray = new THREE.Raycaster();
     this.lookM = new THREE.Matrix4();
     this.tmpQ = new THREE.Quaternion();
-    this.steer = true; // any mouse or pen steers; touch never does (checked per event)
     this.labelRoot = document.getElementById('labels');
     this.clock = new THREE.Clock();
     this.time = 0;
@@ -793,16 +791,6 @@ class Universe {
       this.measure();
     });
     this.ro.observe(document.documentElement);
-    // Listen on every device: touchscreen laptops report "coarse" even when a mouse is plugged in.
-    this.onMove = (e) => {
-      if (e.pointerType === 'touch') return;
-      this.mouse = true;
-      this.pointer.tx = e.clientX / window.innerWidth - 0.5; this.pointer.ty = e.clientY / window.innerHeight - 0.5;
-    };
-    this.onLeave = () => { this.pointer.tx = this.pointer.ty = 0; };
-    window.addEventListener('pointermove', this.onMove, { passive: true });
-    document.documentElement.addEventListener('pointerleave', this.onLeave);
-    window.addEventListener('blur', this.onLeave);
     this.onVis = () => { this.renderer.setAnimationLoop(document.hidden ? null : () => this.frame()); this.clock.getDelta(); };
     document.addEventListener('visibilitychange', this.onVis);
   }
@@ -816,8 +804,6 @@ class Universe {
     const y = window.scrollY || 0;
     this.vel += ((y - this.lastY) / Math.max(dt, 1e-3) - this.vel) * k(REDUCED ? 30 : 6);
     this.lastY = y;
-    this.pointer.x += (this.pointer.tx - this.pointer.x) * k(2.5);
-    this.pointer.y += (this.pointer.ty - this.pointer.y) * k(2.5);
 
     let jumpK = 0;
     if (this.jump) { const t = (performance.now() - this.jump.start) / 1400; jumpK = Math.sin(Math.min(t, 1) * Math.PI); if (t >= 1) this.jump = null; }
@@ -1065,15 +1051,6 @@ class Universe {
       if (t >= 1) { this.flight = null; this.baseQuat = cam.quaternion.clone(); this.view.yaw = this.view.pitch = 0; this.onArrive?.(f.name); }
       return v;
     }
-    // Steering: the view turns toward the pointer, faster the further it is from the centre.
-    // Mouse-only steering only while W (fly) or Space (look) is held; otherwise click and drag to look.
-    if (false) { // mouse-slide steering removed by request: look by click and drag only
-      // Small dead zone in the centre, then turn faster the further the cursor is from it.
-      const dz = (v) => Math.sign(v) * Math.pow(Math.min(1, Math.max(0, Math.abs(v) - 0.04) / 0.42), 1.15);
-      this.baseQuat.premultiply(this.tmpQ.setFromAxisAngle(UP, -dz(this.pointer.x) * 2.2 * dt));
-      const right = this.tmp.side.set(1, 0, 0).applyQuaternion(this.baseQuat);
-      this.baseQuat.premultiply(this.tmpQ.setFromAxisAngle(right, -dz(this.pointer.y) * 1.6 * dt));
-    }
     cam.quaternion.copy(this.baseQuat);
     cam.rotateOnWorldAxis(UP, this.view.yaw);
     cam.rotateX(this.view.pitch);
@@ -1165,7 +1142,6 @@ class Universe {
     this.renderer.setAnimationLoop(null);
     this.ro?.disconnect();
     document.removeEventListener('visibilitychange', this.onVis);
-    if (this.onMove) window.removeEventListener('pointermove', this.onMove);
     this.scene.traverse((o) => {
       o.geometry?.dispose();
       [].concat(o.material || []).forEach((m) => {
