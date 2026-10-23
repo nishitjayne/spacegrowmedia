@@ -1062,7 +1062,7 @@ class Universe {
         L.obj.localToWorld(p);
         const centre = L.obj.getWorldPosition(this.tmp.side);
         const normal = this.tmp.look.copy(p).sub(centre).normalize();
-        show = normal.dot(this.tmp.side.copy(cam.position).sub(p).normalize()) > 0.15 && (exploreReady || (!this.explore && this.progress() < this.stops[1] * 0.7));
+        show = normal.dot(this.tmp.side.copy(cam.position).sub(p).normalize()) > 0.15 && (exploreReady || (!this.explore && (window.scrollY || 0) < window.innerHeight * 0.55));
       } else {
         L.obj.getWorldPosition(p);
         p.addScaledVector(cam.up, L.obj.userData.labelR * 1.3);
