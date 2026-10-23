@@ -207,10 +207,6 @@ section, main { touch-action: pan-y; }
 /* ───────── Clients ───────── */
 #clients { padding-block: clamp(3.5rem, 7vw, 5.5rem); }
 .clients { display: grid; justify-items: center; text-align: center; }
-.logos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(1rem, 4vw, 3rem); width: min(100%, 860px); }
-.logos li { display: grid; justify-items: center; align-content: start; gap: 0.9rem; }
-.logos img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; filter: grayscale(1) brightness(0.9); box-shadow: 0 0 0 1px var(--line-2), 0 0 0 6px rgba(255, 255, 255, 0.02); transition: filter 0.6s var(--ease), box-shadow 0.6s var(--ease), transform 0.6s var(--expo); }
-.logos span { font-size: 0.84rem; color: var(--muted); line-height: 1.35; max-width: 16ch; }
 
 /* ───────── About ───────── */
 .about { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: clamp(3rem, 7vw, 6rem); align-items: center; }
@@ -431,7 +427,6 @@ html.exploring, html.exploring body { cursor: grab; }
   .card:hover::before, .profile:hover::before, .case:hover::before { opacity: 1; }
   .why-card:hover, .addon:hover, .step:hover, .social:hover { border-color: var(--line-2); background-color: var(--glass-2); }
   .social:hover .i { color: var(--accent); }
-  .logos li:hover img { filter: none; box-shadow: 0 0 0 2px rgba(94, 231, 255, 0.6), 0 0 30px rgba(94, 231, 255, 0.3); transform: translateY(-4px); }
   .faq-q:hover { background: rgba(255, 255, 255, 0.04); }
   .faq-q:hover .ico { border-color: rgba(94, 231, 255, 0.5); }
   .method:hover { border-color: var(--line-2); background-color: var(--glass-2); transform: translateX(4px); }
@@ -474,7 +469,6 @@ html.exploring, html.exploring body { cursor: grab; }
   .stats li { padding: 0 0.9rem; }
   .stat-l { font-size: 0.62rem; letter-spacing: 0.06em; }
   .scroll-hint { display: none; }
-  .logos { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 2rem; }
   .bento > .card { grid-column: 1 / -1; }
   .b-social .ticks, .b-web .ticks, .step .ticks { grid-template-columns: minmax(0, 1fr); }
   .b-web { grid-template-columns: minmax(0, 1fr); }
@@ -638,7 +632,11 @@ section { padding-block: clamp(4rem, 8vw, 6.5rem); }
 .orb-ig .orb-ball { --c: #d62976; background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.5), transparent 22%), radial-gradient(circle at 20% 95%, #feda75, #fa7e1e 25%, #d62976 50%, #962fbf 75%, #4f5bd5); }
 .orb-fb .orb-ball { --c: #0866ff; }
 .orbs.gl .orb-ball { background: none; box-shadow: none; }
-.orbs.gl .orb-ball svg { visibility: hidden; }
+.orbs.gl .orb-ball svg, .orbs.gl .orb-ball img { visibility: hidden; }
+.orb-ball img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.orbs-clients { grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 960px); }
+.orbs-clients .orb-ball { width: clamp(88px, 10vw, 128px); }
+.orb-name { font-size: 0.86rem; line-height: 1.35; color: var(--muted); max-width: 16ch; transition: color 0.3s var(--ease); }
 .orb .handle { justify-content: center; white-space: nowrap; overflow-wrap: normal; }
 .orb .go { margin: 0; padding: 0; }
 .orb-ig .go { color: #ff7ab0; }
@@ -647,13 +645,15 @@ section { padding-block: clamp(4rem, 8vw, 6.5rem); }
 .orb:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 @media (any-hover: hover) {
   .orb:hover { background-color: rgba(255, 255, 255, 0.06); }
+  .orb:hover .orb-name { color: var(--ink); }
   .orb:hover .go .i { transform: translateX(4px); }
   .orbs:not(.gl) .orb:hover .orb-ball { transform: scale(1.06); }
 }
 @media (max-width: 560px) {
-  .orbs { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
-  .orb { grid-template-columns: 88px minmax(0, 1fr); grid-template-rows: auto auto; justify-items: start; align-items: center; column-gap: 1.2rem; row-gap: 0.35rem; text-align: left; padding: 0.6rem 0; }
-  .orb-ball { grid-row: span 2; width: 88px; margin: 0; }
+  .orbs:not(.orbs-clients) { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
+  .orbs:not(.orbs-clients) .orb { grid-template-columns: 88px minmax(0, 1fr); grid-template-rows: auto auto; justify-items: start; align-items: center; column-gap: 1.2rem; row-gap: 0.35rem; text-align: left; padding: 0.6rem 0; }
+  .orbs:not(.orbs-clients) .orb-ball { grid-row: span 2; width: 88px; margin: 0; }
+  .orbs-clients { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 1rem; }
   .orb .handle { align-self: end; }
   .orb .go { align-self: start; }
 }

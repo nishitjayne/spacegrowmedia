@@ -477,16 +477,14 @@ function initExplore() {
 }
 
 /* Testimonials: one quote at a time, loops on its own, pauses on hover, focus or the pause button. */
-// Social planets load their WebGL only when the section is close.
+// Orb groups (clients, socials) load their WebGL only when close.
 function initOrbs() {
-  const root = document.querySelector('.orbs');
-  if (!root) return;
-  const io = new IntersectionObserver((es) => {
-    if (!es.some((e) => e.isIntersecting)) return;
-    io.disconnect();
-    import('./socials.js').then((m) => m.initOrbs(root)).catch((e) => console.warn('Social planets failed:', e));
-  }, { rootMargin: '600px 0px' });
-  io.observe(root);
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    if (!e.isIntersecting) return;
+    io.unobserve(e.target);
+    import('./socials.js').then((m) => m.initOrbs(e.target)).catch((err) => console.warn('Orbs failed:', err));
+  }), { rootMargin: '600px 0px' });
+  document.querySelectorAll('.orbs').forEach((r) => io.observe(r));
 }
 
 function initQuotes() {

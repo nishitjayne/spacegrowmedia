@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 /*
-  Social planets: one glossy sphere per network, drawn over each link's ball slot.
+  Social planets and client orbs: one glossy sphere per link, drawn over the link's ball slot.
   The links stay real <a> elements; this canvas only paints. The logo is kept facing the viewer,
-  so each ball reads as its network at a glance.
+  so each ball reads as its network or brand at a glance.
 */
 
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -29,13 +29,49 @@ function texture(net, path) {
   g.scale(7, 7); // the 24-unit icon becomes 168 px, about 60 degrees of the sphere
   g.fillStyle = '#fff';
   g.fill(new Path2D(path));
+  return canvasTexture(c);
+}
+
+function canvasTexture(c) {
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 8;
   return t;
 }
 
-export function initOrbs(root) {
+// A logo projected onto the sphere's front so it reads undistorted face-on, on its own edge colour.
+async function decal(src) {
+  const img = new Image();
+  img.src = src;
+  await img.decode();
+  const N = 256, s = document.createElement('canvas');
+  s.width = s.height = N;
+  const sg = s.getContext('2d', { willReadFrequently: true });
+  sg.drawImage(img, 0, 0, N, N);
+  const px = sg.getImageData(0, 0, N, N).data;
+  const bg = [0, 0, 0];
+  for (let i = 0; i < N; i++) for (const [x, y] of [[i, 2], [i, N - 3], [2, i], [N - 3, i]]) for (let k = 0; k < 3; k++) bg[k] += px[(y * N + x) * 4 + k] / (N * 4);
+  const c = document.createElement('canvas');
+  c.width = 1024; c.height = 512;
+  const g = c.getContext('2d');
+  const out = g.createImageData(1024, 512), d = out.data, R = 0.72; // the logo covers 72% of the visible disc
+  for (let j = 0; j < 512; j++) {
+    const th = (j / 512) * Math.PI, st = Math.sin(th), Y = Math.cos(th);
+    for (let i = 0; i < 1024; i++) {
+      const ph = (i / 1024) * Math.PI * 2, X = -Math.cos(ph) * st, Z = Math.sin(ph) * st, o = (j * 1024 + i) * 4;
+      let rgb = bg;
+      if (Z > 0 && X * X + Y * Y < R * R) {
+        const q = ((Math.floor((0.5 - Y / R / 2) * N) * N) + Math.floor((X / R / 2 + 0.5) * N)) * 4;
+        rgb = [px[q], px[q + 1], px[q + 2]];
+      }
+      d[o] = rgb[0]; d[o + 1] = rgb[1]; d[o + 2] = rgb[2]; d[o + 3] = 255;
+    }
+  }
+  g.putImageData(out, 0, 0);
+  return canvasTexture(c);
+}
+
+export async function initOrbs(root) {
   const canvas = root.querySelector('.orbs-canvas');
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); } catch { return; }
@@ -54,10 +90,10 @@ export function initOrbs(root) {
   const cam = new THREE.OrthographicCamera(0, 1, 0, -1, -1000, 1000);
   const geo = new THREE.SphereGeometry(1, 96, 64);
 
-  const orbs = [...root.querySelectorAll('.orb')].map((a) => {
-    const net = a.dataset.net;
-    const path = document.querySelector(`#i-${net} path`).getAttribute('d');
-    const mesh = new THREE.Mesh(geo, new THREE.MeshPhysicalMaterial({ map: texture(net, path), roughness: 0.35, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 0.8 }));
+  const links = [...root.querySelectorAll('.orb')];
+  const maps = await Promise.all(links.map((a) => (a.dataset.img ? decal(a.dataset.img) : texture(a.dataset.net, document.querySelector(`#i-${a.dataset.net} path`).getAttribute('d')))));
+  const orbs = links.map((a, i) => {
+    const mesh = new THREE.Mesh(geo, new THREE.MeshPhysicalMaterial({ map: maps[i], roughness: 0.35, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 0.8 }));
     scene.add(mesh);
     const o = { a, ball: a.querySelector('.orb-ball'), mesh, on: 0, in: false, tx: 0, ty: 0, rx: 0, ry: 0, turn: 0, goal: 0, v: 0, phase: Math.random() * 6.28 };
     const enter = () => { o.in = true; if (!REDUCED) o.goal += Math.PI * 2; };
