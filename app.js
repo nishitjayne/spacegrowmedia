@@ -145,112 +145,37 @@ function runIntro() {
   bootScene();
   $('intro-skip').addEventListener('click', finishIntro);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') finishIntro(); });
-
-  const canvas = $('intro-canvas'), ctx = canvas.getContext('2d');
-  const dpr = Math.min(devicePixelRatio, 2);
-  canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr;
-  ctx.scale(dpr, dpr);
-  const stars = Array.from({ length: 420 }, () => ({
-    x: Math.random() * innerWidth, y: Math.random() * innerHeight, z: Math.random(),
-    r: Math.random() * 1.1 + 0.2, s: Math.random() * 0.02 + 0.004, o: Math.random() * 6.28,
-  }));
-  const t0 = performance.now();
-  (function draw(now) {
-    if (introDone) return;
-    const t = (now - t0) / 1000, w = innerWidth, h = innerHeight;
-    ctx.fillStyle = '#03040a'; ctx.fillRect(0, 0, w, h);
-    const glow = ctx.createRadialGradient(w / 2, h * 0.45, 0, w / 2, h * 0.45, Math.max(w, h) * 0.6);
-    glow.addColorStop(0, 'rgba(79,125,255,0.10)'); glow.addColorStop(0.5, 'rgba(155,107,255,0.04)'); glow.addColorStop(1, 'transparent');
-    ctx.fillStyle = glow; ctx.fillRect(0, 0, w, h);
-    stars.forEach((s) => {
-      const drift = t * 6 * s.z;
-      ctx.fillStyle = `rgba(230,236,255,${(0.25 + s.z * 0.6) * (Math.sin(t * 60 * s.s + s.o) * 0.3 + 0.7)})`;
-      ctx.beginPath(); ctx.arc((s.x - drift + w) % w, s.y, s.r * (0.6 + s.z), 0, 6.2832); ctx.fill();
-    });
-    requestAnimationFrame(draw);
-  })(t0);
-
-  // Sunrise over Earth when the 3D scene is ready in time; otherwise the logo alone on the starfield.
-  // While Earth loads, a quiet "prepare for takeoff" stage with real texture progress; shown only if it takes a while.
+  // While Earth loads, a quiet "prepare for takeoff" line with real texture progress; shown only if it takes a while.
   const load = $('intro-load');
   const onLoad = (e) => load.style.setProperty('--p', e.detail.toFixed(3));
   addEventListener('sg-load', onLoad);
   const shown = setTimeout(() => load.classList.add('on'), 400);
-  Promise.race([scenePromise, new Promise((r) => setTimeout(r, 9000))])
-    .then((u) => document.fonts.ready.then(() => {
-      clearTimeout(shown);
-      removeEventListener('sg-load', onLoad);
-      load.classList.remove('on');
-      if (!introDone) playLogo(u);
-    }));
+  Promise.race([scenePromise, new Promise((r) => setTimeout(r, 9000))]).then((u) => {
+    clearTimeout(shown);
+    removeEventListener('sg-load', onLoad);
+    load.classList.remove('on');
+    document.fonts.ready.then(() => { if (!introDone) playName(u); }); // measure the nav wordmark in its real font
+  });
 }
 
-// The Sun clears Earth's limb just ahead of the logo's rocket, the rocket lays the S, the wordmark settles,
-// then the mark docks into the nav logo while the camera glides down to the hero view.
-function playLogo(u) {
-  const logo = $('intro-logo');
-  const span = (t, a, b) => Math.max(0, Math.min(1, (t - a) / (b - a)));
-  const out = (x) => 1 - Math.pow(1 - x, 3);
-  const inOut = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
-  const back = (x) => 1 + 2.2 * Math.pow(x - 1, 3) + 1.2 * Math.pow(x - 1, 2);
-  const ringAt = () => new DOMPoint(305, 510).matrixTransform(logo.getScreenCTM()); // centre of the logo's ring
-  const arcs = [$('arcA'), $('arcB')].map((p) => ({ p, len: p.getTotalLength() }));
-  const reveal = $('revealPath'), revLen = reveal.getTotalLength();
-  const rocket = $('rocket'), flame = $('flame'), bar = $('bar');
-  const pixels = [...$('pixels').children].map((r) => ({ r, x: +r.getAttribute('x'), y: +r.getAttribute('y'), dx: (Math.random() - 0.3) * 260, dy: (Math.random() - 0.5) * 220, rot: (Math.random() - 0.5) * 240, d: Math.random() * 0.25 }));
-  const words = [...$('words').children].filter((w) => w.tagName === 'text');
-  const LOGO = u ? 1.1 : 0.2, DOCK = LOGO + 3.6, GLIDE = 2.6;
-  logo.classList.add('play');
-  if (u) {
-    const c = new DOMPoint(540, 232).matrixTransform(logo.getScreenCTM()); // just past the rocket's nose
-    u.sunrise((c.x / innerWidth) * 2 - 1, 1 - (c.y / innerHeight) * 2, DOCK, GLIDE);
-    $('intro').classList.add('sky');
-  }
-  let angle = 0;
-  const t0 = performance.now();
-  (function frame(now) {
+// The name hangs above the horizon as the Sun clears it, then settles onto the nav's own wordmark.
+function playName(u) {
+  const word = document.querySelector('.nav .brand-word'), r = word.getBoundingClientRect();
+  const name = word.cloneNode(true);
+  name.classList.add('intro-name');
+  Object.assign(name.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px` });
+  const k = Math.min(3.2, (innerWidth * 0.7) / r.width);
+  name.style.transform = `translate(${innerWidth / 2 - r.left - r.width / 2}px, ${innerHeight * 0.36 - r.top - r.height / 2}px) scale(${k})`;
+  $('intro').append(name);
+  const SHOW = u ? 1.8 : 0.3, DOCK = SHOW + 2.6;
+  if (u) { u.sunrise(0, -0.24, DOCK, 2.6); $('intro').classList.add('sky'); }
+  setTimeout(() => name.classList.add('on'), SHOW * 1000);
+  setTimeout(() => {
     if (introDone) return;
-    const t = (now - t0) / 1000 - LOGO;
-    const ring = inOut(span(t, 0, 1.4));
-    arcs.forEach(({ p, len }) => { p.style.strokeDasharray = len; p.style.strokeDashoffset = len * (1 - ring); });
-    for (const px of pixels) {
-      const k = back(span(t, 0.4 + px.d, 1.2 + px.d));
-      px.r.setAttribute('transform', `translate(${(px.dx * (1 - k)).toFixed(2)} ${(px.dy * (1 - k)).toFixed(2)}) rotate(${(px.rot * (1 - k)).toFixed(1)} ${px.x + 8} ${px.y + 8})`);
-      px.r.style.opacity = span(t, 0.4 + px.d, 0.7 + px.d);
-    }
-    // The rocket lifts off from the pixel cloud and lays the ribbon behind it.
-    const fly = inOut(span(t, 0.9, 2.9));
-    const d = fly * revLen;
-    reveal.style.strokeDasharray = revLen;
-    reveal.style.strokeDashoffset = revLen - d;
-    const pt = reveal.getPointAtLength(Math.max(d, 0.01)), ahead = reveal.getPointAtLength(Math.min(d + 6, revLen));
-    const target = fly >= 0.999 ? 42 : (Math.atan2(ahead.y - pt.y, ahead.x - pt.x) * 180) / Math.PI + 90;
-    if (t < 0.95) angle = target;
-    angle += (((target - angle + 540) % 360) - 180) * 0.22;
-    rocket.setAttribute('transform', `translate(${pt.x.toFixed(2)},${pt.y.toFixed(2)}) rotate(${angle.toFixed(2)}) scale(0.86)`);
-    rocket.style.opacity = span(t, 0.8, 1.0);
-    flame.style.opacity = t > 0.9 && t < 3.0 ? 0.9 : Math.max(0, 0.9 - (t - 3.0) * 2);
-    flame.setAttribute('transform', `scale(1, ${(0.8 + Math.random() * 0.5).toFixed(2)})`);
-    words.forEach((w, n) => {
-      const k = out(span(t, 2.4 + n * 0.14, 3.2 + n * 0.14));
-      w.style.opacity = k;
-      w.setAttribute('transform', `translate(0 ${((1 - k) * 26).toFixed(2)})`);
-    });
-    bar.setAttribute('width', 198 * out(span(t, 3.0, 3.5)));
-    if (t < DOCK - LOGO) requestAnimationFrame(frame);
-    else dock();
-  })(t0);
-
-  // The ring and S shrink onto the nav mark; rocket, pixels and words hand over to the nav wordmark.
-  function dock() {
-    const mark = document.querySelector('.nav .brand-mark').getBoundingClientRect();
-    const c = ringAt(), box = logo.getBoundingClientRect();
-    const s = (22.5 * (mark.width / 50)) / (185 * logo.getScreenCTM().a); // nav ring: r 135 in a 300-unit box
-    logo.style.transformOrigin = `${c.x - box.left}px ${c.y - box.top}px`;
-    logo.style.transform = `translate(${mark.left + mark.width * 0.483 - c.x}px, ${mark.top + mark.height * 0.5 - c.y}px) scale(${s})`;
-    logo.classList.add('docking');
+    name.classList.add('dock');
+    name.style.transform = 'none';
     setTimeout(finishIntro, 900);
-  }
+  }, DOCK * 1000);
 }
 
 /* ───────── Navigation ───────── */

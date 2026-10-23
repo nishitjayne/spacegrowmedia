@@ -144,19 +144,21 @@ const ATMOSPHERE = {
 #include <common>
 #include <logdepthbuf_pars_vertex>
 
-    varying vec3 vN; varying vec3 vNW; varying vec3 vView;
-    void main(){ vN = normalize(normalMatrix * normal); vNW = normalize(mat3(modelMatrix) * normal); vec4 mv = modelViewMatrix * vec4(position,1.0); vView = normalize(-mv.xyz); gl_Position = projectionMatrix * mv;
+    varying vec3 vN; varying vec3 vNW; varying vec3 vView; varying vec3 vWP;
+    void main(){ vN = normalize(normalMatrix * normal); vNW = normalize(mat3(modelMatrix) * normal); vWP = (modelMatrix * vec4(position, 1.0)).xyz; vec4 mv = modelViewMatrix * vec4(position,1.0); vView = normalize(-mv.xyz); gl_Position = projectionMatrix * mv;
 #include <logdepthbuf_vertex>
  }`,
   fragmentShader: `
 #include <logdepthbuf_pars_fragment>
 
     uniform vec3 uSun; uniform vec3 uColor; uniform float uPower; uniform float uStrength;
-    varying vec3 vN; varying vec3 vNW; varying vec3 vView;
+    varying vec3 vN; varying vec3 vNW; varying vec3 vView; varying vec3 vWP;
     void main(){
       float rim = pow(max(0.74 - dot(vN, vView), 0.0), uPower);
       float s = smoothstep(-0.45, 0.55, dot(vNW, uSun));
       vec3 col = mix(vec3(0.02, 0.05, 0.14), uColor, s);
+      float fwd = pow(max(dot(normalize(vWP - cameraPosition), uSun), 0.0), 60.0); // looking toward the Sun through the limb
+      col += vec3(1.0, 0.45, 0.16) * fwd * 8.0;
       
 #include <logdepthbuf_fragment>
       gl_FragColor = vec4(col * rim * uStrength * (0.12 + 0.88 * s), 1.0);
@@ -837,7 +839,7 @@ class Universe {
   /* ───────── intro: sunrise over Earth's limb, then a glide down to the hero view ───────── */
   // sx, sy: where on screen (NDC) the Sun should rise, so the logo ring can frame it.
   sunrise(sx, sy, glideAt, glideFor) {
-    this.intro = { start: performance.now(), sx, sy, glideAt, glideFor, q: new THREE.Quaternion(), q1: new THREE.Quaternion(), qh: new THREE.Quaternion() };
+    this.intro = { start: performance.now(), sx, sy, glideAt, glideFor, q: new THREE.Quaternion(), q1: new THREE.Quaternion() };
     this.sun.scale.setScalar(0.035); // close to the real ~0.5° Sun seen from near Earth
     this.coronaMat.uniforms.uProm.value = 0; // prominence loops are lost at this size
     this.labelRoot.style.visibility = 'hidden';
@@ -857,15 +859,21 @@ class Universe {
     const it = this.intro, cam = this.camera, R = EARTH_R, E = this.earth.position;
     const t = (performance.now() - it.start) / 1000;
     const ease = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * x * (x * (x * 6 - 15) + 10); };
-    // Night side, with the Sun straight behind Earth; rising along n brings it over the limb.
-    const toSun = this.tmp.side.copy(E).negate().normalize();
-    const n = this.tmp.q.copy(UP).addScaledVector(toSun, -UP.dot(toSun)).normalize();
-    const rise = ease(t / 2.6);
-    const start = this.tmp.pos.copy(E).addScaledVector(toSun, -R * (2.7 - 0.15 * rise)).addScaledVector(n, R * (0.94 + 0.16 * rise));
-    // Aim so the Sun lands at (sx, sy): look straight at it, then turn by the screen offset.
+    // Low orbit in Earth's shadow, looking along the horizon at the Sun, like an ISS sunrise.
+    // The camera climbs (2001's rising reveal) and drifts sideways with a slight roll (Gravity's long take).
+    const toSun = E.clone().negate().normalize();
+    const up = UP.clone().addScaledVector(toSun, -UP.dot(toSun)).normalize();
+    const k = ease(t / 3.4);
+    const D = R * (1.22 + 0.08 * k);
+    const e = 0.07 - Math.acos(R / D) + 0.12 * (k - 1); // Sun elevation above the local horizon: just below, then just above
+    const radial = up.clone().multiplyScalar(Math.cos(e)).addScaledVector(toSun, Math.sin(e));
+    const start = E.clone().addScaledVector(radial, D).addScaledVector(new THREE.Vector3().crossVectors(toSun, up), R * 0.08 * (k - 0.5));
+    // Aim so the Sun lands at (sx, sy), with the horizon level to the local vertical, then roll.
     const th = Math.tan((cam.fov * Math.PI) / 360);
-    this.lookM.lookAt(start, this.tmp.off.set(0, 0, 0), UP);
-    it.q.setFromRotationMatrix(this.lookM).multiply(it.q1.setFromUnitVectors(this.tmp.look.set(it.sx * th * cam.aspect, it.sy * th, -1).normalize(),new THREE.Vector3(0, 0, -1)));
+    this.lookM.lookAt(start, new THREE.Vector3(), radial);
+    it.q.setFromRotationMatrix(this.lookM)
+      .multiply(it.q1.setFromUnitVectors(new THREE.Vector3(it.sx * th * cam.aspect, it.sy * th, -1).normalize(), new THREE.Vector3(0, 0, -1)))
+      .multiply(it.q1.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.12 - 0.08 * k));
     const g = ease((t - it.glideAt) / it.glideFor);
     if (g <= 0) { cam.position.copy(start); cam.quaternion.copy(it.q); return; }
     // Glide round Earth (never through it) to the hero pose, easing distance in log space.
@@ -874,8 +882,10 @@ class Universe {
     const la = a.length(), lb = b.length();
     const dir = a.normalize().applyQuaternion(new THREE.Quaternion().slerpQuaternions(new THREE.Quaternion(), new THREE.Quaternion().setFromUnitVectors(a, b.clone().normalize()), g));
     cam.position.copy(E).addScaledVector(dir, Math.exp(Math.log(la) + (Math.log(lb) - Math.log(la)) * g) * (1 + 0.25 * Math.sin(Math.PI * g)));
-    this.lookM.lookAt(hero, heroLook, UP);
-    cam.quaternion.copy(it.q).slerp(it.qh.setFromRotationMatrix(this.lookM), g);
+    // Keep Earth in frame while turning: aim at a point that slides from the horizon to the hero's look point.
+    const aim = start.clone().addScaledVector(new THREE.Vector3(0, 0, -1).applyQuaternion(it.q), R * 1.2).lerp(heroLook, g);
+    this.lookM.lookAt(cam.position, aim, radial.lerp(UP, g).normalize());
+    cam.quaternion.setFromRotationMatrix(this.lookM);
     if (g >= 1) {
       this.intro = null;
       this.look.copy(heroLook);
