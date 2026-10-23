@@ -580,7 +580,8 @@ class Universe {
     let mE = mM; for (let i = 0; i < 6; i++) mE -= (mE - 0.0549 * Math.sin(mE) - mM) / (1 - 0.0549 * Math.cos(mE));
     const mp = keplerPoint(moonEl, mE);
     this.moon.position.copy(mp.setLength(46 * mp.length() / AU(46 / 700)));
-    this.moon.lookAt(0, 0, 0);
+    this.moon.lookAt(0, 0, 0); // +Z at Earth (not yet parented, so the origin is Earth's centre)
+    this.moon.rotateY(-Math.PI / 2); // longitude 0, the near side, faces Earth
     this.earth.add(this.moon);
     this.named(this.moon, 'Moon', 2.73);
     this.moon.userData.pole = UP.clone();
@@ -815,7 +816,7 @@ class Universe {
     for (const p of this.pickables) {
       if (p === this.earthBody || p.userData.baseSpin === undefined) continue;
       if (!REDUCED) p.rotation.y += dt * p.userData.baseSpin;
-      if (p.userData.spin) { p.rotation.y += p.userData.spin * dt; p.userData.spin *= Math.exp(-1.6 * dt); }
+      if (p.userData.spin) { p.rotateOnAxis(p.userData.spinAxis, p.userData.spin * dt); p.userData.spin *= Math.exp(-1.6 * dt); }
     }
 
     // Site mode shows only the body being visited and the next one; explore shows the whole system.
@@ -911,7 +912,9 @@ class Universe {
       const toCam = new THREE.Vector3().subVectors(this.camera.position, g.getWorldPosition(new THREE.Vector3())).normalize();
       const sign = Math.sign(new THREE.Vector3().crossVectors(pole, toCam).dot(camRight)) || 1;
       const a = dx * 0.006 * sign;
-      g.rotation.y += a;
+      // Turn about the pole in the body's own frame; Euler y is not the pole once a body has been aimed (the Moon).
+      g.userData.spinAxis = pole.applyQuaternion(g.getWorldQuaternion(this.tmpQ).invert()).normalize().clone();
+      g.rotateOnAxis(g.userData.spinAxis, a);
       g.userData.spin = THREE.MathUtils.clamp(a / s, -4, 4);
     } else {
       this.view.yaw += dx * 0.0022;
