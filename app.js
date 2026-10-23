@@ -1,3 +1,4 @@
+import { nextFact } from './facts.js';
 import Lenis from 'lenis';
 
 document.documentElement.classList.add('rv');
@@ -426,28 +427,24 @@ const FACTS = {
   Uranus: ['Ice giant', [['Diameter', '50,724 km'], ['Day', '17 h 14 m, retrograde'], ['Year', '84 years'], ['From the Sun', '19.19 AU']]],
   Neptune: ['Ice giant', [['Diameter', '49,244 km'], ['Day', '16 h 6 m'], ['Year', '164.8 years'], ['From the Sun', '30.07 AU']]],
 };
-const FUN = {
-  'Solar system': ['The solar system is about 4.6 billion years old.', 'The Sun carries the whole solar system around the Milky Way once every 230 million years or so.', 'All the asteroids in the main belt put together weigh only about 3% as much as our Moon.', 'Voyager 1, launched in 1977, is the most distant human-made object, more than 160 AU from the Sun.'],
-  Sun: ['The Sun holds 99.86% of all the mass in the solar system.', 'Sunlight takes about 8 minutes 20 seconds to reach Earth.', 'About 1.3 million Earths could fit inside the Sun.', 'Its core is around 15 million °C, where hydrogen fuses into helium.'],
-  Mercury: ['Temperatures swing from about 430 °C by day to -180 °C at night.', 'One full day-night cycle on Mercury (176 Earth days) lasts two of its years.', 'Mercury is slowly shrinking as its iron core cools.', 'It has no moons and almost no atmosphere.'],
-  Venus: ['Venus is the hottest planet, around 465 °C, hotter than Mercury.', 'A day on Venus is longer than its year.', 'It spins backwards, so the Sun rises in the west there.', 'The air pressure at the surface is about 92 times Earth’s.'],
-  Earth: ['Earth is the only place we know of with life.', 'About 71% of the surface is covered by water.', 'Earth is the densest planet in the solar system.', 'Our days are getting longer by roughly 1.7 milliseconds per century as the Moon slows Earth’s spin.'],
-  Moon: ['The Moon always shows us the same face because it is tidally locked to Earth.', 'The far side is not dark: it gets just as much sunlight. Drag the Moon to turn it and see it.', 'The Moon drifts about 3.8 cm farther from Earth every year.', 'Twelve people have walked on the Moon, all between 1969 and 1972.'],
-  Mars: ['Olympus Mons on Mars is about 22 km tall, roughly two and a half times Mount Everest.', 'Sunsets on Mars look blue.', 'Mars has two small moons, Phobos and Deimos.', 'Dust storms can grow to cover the whole planet for weeks.'],
-  Jupiter: ['The Great Red Spot is a storm wider than Earth that has raged for centuries.', 'About 1,300 Earths could fit inside Jupiter.', 'Jupiter has the shortest day of any planet: under 10 hours.', 'It has more than 90 known moons, including Ganymede, the largest moon in the solar system.'],
-  Saturn: ['Saturn is less dense than water: in a big enough bath, it would float.', 'Its rings are mostly ice and span about 280,000 km, yet are often only about 10 m thick.', 'Saturn has the most known moons of any planet, more than 140.', 'Its moon Titan has lakes and rivers of liquid methane.'],
-  Uranus: ['Uranus is tilted about 98°, so it rolls around the Sun on its side.', 'Each pole gets about 42 years of sunlight followed by 42 years of darkness.', 'It has the coldest atmosphere of any planet, down to -224 °C.', 'It was the first planet found with a telescope, by William Herschel in 1781.'],
-  Neptune: ['Neptune has the fastest winds in the solar system, about 2,100 km/h.', 'It was predicted with mathematics before anyone saw it, in 1846.', 'One Neptune year is 165 Earth years: it finished its first orbit since discovery in 2011.', 'Its moon Triton orbits backwards and is slowly spiralling inward.'],
-};
-let funName = '', funIdx = 0;
-function showFun(step) {
-  const list = FUN[funName];
-  if (!list) return;
-  funIdx = (funIdx + step + list.length) % list.length;
-  $('hud-fun').textContent = list[funIdx];
+/* Did-you-know: endless, non-repeating (curated first, then live from Wikipedia). */
+let funName = '', funTimer = 0, funToken = 0;
+async function showFun() {
+  if (!funName) return;
+  const token = ++funToken, el = $('hud-fun');
+  el.style.opacity = '0';
+  const f = await nextFact(funName);
+  if (token !== funToken) return;
+  setTimeout(() => {
+    el.textContent = f.t;
+    $('hud-fun-src').textContent = f.src ? 'Source: ' + f.src : '';
+    el.style.opacity = '1';
+  }, 200);
+  clearTimeout(funTimer);
+  funTimer = setTimeout(showFun, 12000);
 }
 function showInfo(name) {
-  funName = name; funIdx = Math.floor(Math.random() * (FUN[name]?.length || 1)); showFun(0);
+  funName = name; showFun();
   const f = FACTS[name];
   if (!f) return;
   $('hud-kind').textContent = f[0];
@@ -476,7 +473,7 @@ function setExplore(on) {
   universe.setExplore(on);
   universe.onArrive = showInfo;
   startTelemetry(on);
-  if (on) flashKeys(); else $('hud-info').classList.remove('on');
+  if (on) flashKeys(); else { $('hud-info').classList.remove('on'); clearTimeout(funTimer); funName = ''; }
   const flash = $('jump-flash');
   flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go');
   document.documentElement.classList.toggle('exploring', on);
@@ -494,7 +491,7 @@ function initExplore() {
     if (name) departing(name);
   }));
   $('hud-help').addEventListener('click', () => flashKeys());
-  $('fun-next').addEventListener('click', () => showFun(1));
+  $('fun-next').addEventListener('click', () => showFun());
   // Steering pauses while the pointer is over the HUD, so reaching for a button doesn't spin the view.
   document.addEventListener('pointermove', (e) => { if (universe) universe.steerHold = !!(e.target instanceof Element && e.target.closest('.hud-bodies, .hud-help, .explore-btn, .hud-panel, .hud-info')); }, { passive: true });
   $('explore-mob').addEventListener('click', () => { $('close-mob').click(); setTimeout(() => setExplore(true), 350); });
@@ -520,6 +517,8 @@ function initQuotes() {
   const DUR = 7000;
   let i = 0, t0 = performance.now(), elapsed = 0, hover = false, paused = reduceMotion;
   const show = (n, manual) => {
+    const back = manual === 'back';
+    root.classList.toggle('tq-back', back);
     slides[i].classList.remove('on'); slides[i].setAttribute('aria-hidden', 'true'); tabs[i].removeAttribute('aria-current');
     tabs[i].style.setProperty('--p', '0');
     i = (n + slides.length) % slides.length;
@@ -534,9 +533,14 @@ function initQuotes() {
   };
   setPaused(paused);
   $('tq-next').addEventListener('click', () => show(i + 1, true));
-  $('tq-prev').addEventListener('click', () => show(i - 1, true));
+  $('tq-prev').addEventListener('click', () => show(i - 1, 'back'));
+  tabs.forEach((b) => b.addEventListener('click', () => { if (+b.dataset.i < i) root.classList.add('tq-back'); }, true));
+  root.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') show(i + 1, true); if (e.key === 'ArrowLeft') show(i - 1, 'back'); });
+  let sx = null;
+  stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') sx = e.clientX; });
+  stage.addEventListener('pointerup', (e) => { if (sx === null) return; const d = e.clientX - sx; sx = null; if (Math.abs(d) > 40) (d < 0 ? show(i + 1, true) : show(i - 1, 'back')); });
   btn.addEventListener('click', () => setPaused(!paused));
-  tabs.forEach((b) => b.addEventListener('click', () => show(+b.dataset.i, true)));
+  tabs.forEach((b) => b.addEventListener('click', () => show(+b.dataset.i, +b.dataset.i < i ? 'back' : true)));
   const hold = (v) => () => { hover = v; if (!v) t0 = performance.now() - elapsed; };
   root.addEventListener('pointerenter', hold(true));
   root.addEventListener('pointerleave', hold(false));

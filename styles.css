@@ -607,3 +607,24 @@ section { padding-block: clamp(4rem, 8vw, 6.5rem); }
 .profile:active, .case:active, .method:active, .social:active { scale: 0.985; transition: scale 0.15s var(--ease); }
 .hud-bodies button:active, .tq-tab:active, .faq-q:active { scale: 0.97; }
 .tq-tab { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.35; }
+
+.hud-fun-src { min-height: 1.2em; margin-top: 0.4rem; font: 400 0.72rem/1.2 var(--f-mono); color: var(--dim); }
+.hud-fun p#hud-fun { transition: opacity 0.2s; }
+
+/* About: text and photo frame start on the same line. */
+.about { align-items: start; }
+.about-copy { padding-top: 0; }
+
+/* Carousel: slides travel in the direction you move, captions carry the client's face. */
+.tq { position: relative; }
+.tq-stage { touch-action: pan-y; }
+.tq-slide { transform: translateX(48px); }
+.tq-back .tq-slide { transform: translateX(-48px); }
+.tq-slide.on { transform: none; }
+.tq-slide figcaption { grid-template-columns: 52px minmax(0, 1fr); column-gap: 1rem; align-items: center; }
+.tq-av { grid-row: span 2; width: 52px; height: 52px; border-radius: 50%; object-fit: cover; padding: 2px; background: var(--grad); }
+.tq-slide figcaption b { align-self: end; }
+.tq-slide figcaption span { align-self: start; }
+.tq:focus-within .tq-tab[aria-current="true"] { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .tq-slide, .tq-back .tq-slide { transform: none; } }
+.about-copy > .eyebrow { display: flex; width: max-content; }
