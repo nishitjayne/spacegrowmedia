@@ -639,3 +639,32 @@ section { padding-block: clamp(4rem, 8vw, 6.5rem); }
 .tq:focus-within .tq-tab[aria-current="true"] { color: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .tq-slide, .tq-back .tq-slide { transform: none; } }
 .about-copy > .eyebrow { display: flex; width: max-content; }
+
+/* Social planets: a glossy ball per network (WebGL paints over the CSS ball once ready). */
+.orbs { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1rem, 3vw, 2.5rem); max-width: 860px; margin-inline: auto; padding-block: 1rem; }
+.orbs-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.orb { position: relative; z-index: 1; display: grid; justify-items: center; gap: 0.9rem; padding: 1.2rem 0.5rem; border-radius: 24px; text-align: center; min-width: 0; -webkit-tap-highlight-color: transparent; transition: background-color 0.3s var(--ease); }
+.orb-ball { --c: #0a66c2; display: grid; place-items: center; width: clamp(110px, 13vw, 160px); aspect-ratio: 1; border-radius: 50%; margin-bottom: 0.4rem; color: #fff; background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.55), transparent 22%), radial-gradient(circle at 70% 80%, rgba(0, 0, 0, 0.45), transparent 60%), var(--c); box-shadow: inset -10px -14px 30px rgba(0, 0, 0, 0.35), 0 24px 40px -22px var(--c); transition: transform 0.5s var(--expo); }
+.orb-ball svg { width: 38%; height: 38%; }
+.orb-ig .orb-ball { --c: #d62976; background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.5), transparent 22%), radial-gradient(circle at 20% 95%, #feda75, #fa7e1e 25%, #d62976 50%, #962fbf 75%, #4f5bd5); }
+.orb-fb .orb-ball { --c: #0866ff; }
+.orbs.gl .orb-ball { background: none; box-shadow: none; }
+.orbs.gl .orb-ball svg { visibility: hidden; }
+.orb .handle { justify-content: center; white-space: nowrap; overflow-wrap: normal; }
+.orb .go { margin: 0; padding: 0; }
+.orb-ig .go { color: #ff7ab0; }
+.orb-in .go { color: #6fb6ff; }
+.orb-fb .go { color: #7aa8ff; }
+.orb:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+@media (any-hover: hover) {
+  .orb:hover { background-color: rgba(255, 255, 255, 0.06); }
+  .orb:hover .go .i { transform: translateX(4px); }
+  .orbs:not(.gl) .orb:hover .orb-ball { transform: scale(1.06); }
+}
+@media (max-width: 560px) {
+  .orbs { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
+  .orb { grid-template-columns: 88px minmax(0, 1fr); grid-template-rows: auto auto; justify-items: start; align-items: center; column-gap: 1.2rem; row-gap: 0.35rem; text-align: left; padding: 0.6rem 0; }
+  .orb-ball { grid-row: span 2; width: 88px; margin: 0; }
+  .orb .handle { align-self: end; }
+  .orb .go { align-self: start; }
+}

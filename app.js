@@ -552,6 +552,18 @@ function initExplore() {
 }
 
 /* Testimonials: one quote at a time, loops on its own, pauses on hover, focus or the pause button. */
+// Social planets load their WebGL only when the section is close.
+function initOrbs() {
+  const root = document.querySelector('.orbs');
+  if (!root) return;
+  const io = new IntersectionObserver((es) => {
+    if (!es.some((e) => e.isIntersecting)) return;
+    io.disconnect();
+    import('./socials.js').then((m) => m.initOrbs(root)).catch((e) => console.warn('Social planets failed:', e));
+  }, { rootMargin: '600px 0px' });
+  io.observe(root);
+}
+
 function initQuotes() {
   const root = $('tq');
   if (!root) return;
@@ -599,6 +611,7 @@ function initQuotes() {
 
 $('year').textContent = new Date().getFullYear();
 initQuotes();
+initOrbs();
 initExplore();
 initSpaceDrag();
 initNav();
