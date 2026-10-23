@@ -54,20 +54,21 @@ async function decal(src) {
   const c = document.createElement('canvas');
   c.width = 1024; c.height = 512;
   const g = c.getContext('2d');
-  const out = g.createImageData(1024, 512), d = out.data, R = 0.72; // the logo covers 72% of the visible disc
-  for (let j = 0; j < 512; j++) {
+  g.fillStyle = `rgb(${bg.map(Math.round).join(',')})`;
+  g.fillRect(0, 0, 1024, 512);
+  // Only the front band can show the logo: u in [0, 0.5] (facing +Z) and rows where |Y| < R.
+  const R = 0.72, j0 = Math.floor((Math.acos(R) / Math.PI) * 512), j1 = Math.ceil(((Math.PI - Math.acos(R)) / Math.PI) * 512);
+  const out = g.getImageData(0, j0, 512, j1 - j0), d = out.data;
+  for (let j = j0; j < j1; j++) {
     const th = (j / 512) * Math.PI, st = Math.sin(th), Y = Math.cos(th);
-    for (let i = 0; i < 1024; i++) {
-      const ph = (i / 1024) * Math.PI * 2, X = -Math.cos(ph) * st, Z = Math.sin(ph) * st, o = (j * 1024 + i) * 4;
-      let rgb = bg;
-      if (Z > 0 && X * X + Y * Y < R * R) {
-        const q = ((Math.floor((0.5 - Y / R / 2) * N) * N) + Math.floor((X / R / 2 + 0.5) * N)) * 4;
-        rgb = [px[q], px[q + 1], px[q + 2]];
-      }
-      d[o] = rgb[0]; d[o + 1] = rgb[1]; d[o + 2] = rgb[2]; d[o + 3] = 255;
+    for (let i = 0; i < 512; i++) {
+      const X = -Math.cos((i / 1024) * Math.PI * 2) * st;
+      if (X * X + Y * Y >= R * R) continue;
+      const q = (Math.floor((0.5 - Y / R / 2) * N) * N + Math.floor((X / R / 2 + 0.5) * N)) * 4, o = ((j - j0) * 512 + i) * 4;
+      d[o] = px[q]; d[o + 1] = px[q + 1]; d[o + 2] = px[q + 2];
     }
   }
-  g.putImageData(out, 0, 0);
+  g.putImageData(out, 0, j0);
   return canvasTexture(c);
 }
 
@@ -112,13 +113,14 @@ export async function initOrbs(root) {
 
   let w = 0, h = 0, last = performance.now(), raf = 0;
   const fit = () => {
+    if (w === root.clientWidth && h === root.clientHeight) return; // re-allocating the canvas is costly
     w = root.clientWidth; h = root.clientHeight;
     renderer.setSize(w, h, false);
     cam.right = w; cam.bottom = -h;
     cam.updateProjectionMatrix();
   };
-  new ResizeObserver(fit).observe(root);
   fit();
+  new ResizeObserver(fit).observe(root);
 
   function frame(now) {
     raf = requestAnimationFrame(frame);

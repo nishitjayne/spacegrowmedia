@@ -336,11 +336,11 @@ const DEG = Math.PI / 180;
   and L's rate [deg per century]. Poles are IAU WGCCRE right ascension and declination of the north pole.
 */
 const PLANETS = [
-  { name: 'Mercury', el: [0.38709927, 0.20563593, 7.00497902, 252.25032350, 77.45779628, 48.33076593, 149472.67411175], pole: [281.01, 61.41], spin: 0.01, r: 3.83, file: 'mercury' },
-  { name: 'Venus', el: [0.72333566, 0.00677672, 3.39467605, 181.97909950, 131.60246718, 76.67984255, 58517.81538729], pole: [272.76, 67.16], spin: -0.004, r: 9.5, file: 'venus' },
-  { name: 'Mars', el: [1.52371034, 0.09339410, 1.84969142, -4.55343205, -23.94362959, 49.55953891, 19140.30268499], pole: [317.68, 52.89], spin: 0.05, r: 5.32, file: 'mars' },
-  { name: 'Jupiter', el: [5.20288700, 0.04838624, 1.30439695, 34.39644051, 14.72847983, 100.47390909, 3034.74612775], pole: [268.05, 64.49], spin: 0.12, r: 112, file: 'jupiter' },
-  { name: 'Saturn', el: [9.53667594, 0.05386179, 2.48599187, 49.95424423, 92.59887831, 113.66242448, 1222.49362201], pole: [40.59, 83.54], spin: 0.11, r: 94.5, file: 'saturn', ring: [1.24, 2.27, 'saturn-ring.png', 1] },
+  { name: 'Mercury', el: [0.38709927, 0.20563593, 7.00497902, 252.25032350, 77.45779628, 48.33076593, 149472.67411175], pole: [281.01, 61.41], spin: 0.01, r: 3.83, file: 'mercury', k4: true },
+  { name: 'Venus', el: [0.72333566, 0.00677672, 3.39467605, 181.97909950, 131.60246718, 76.67984255, 58517.81538729], pole: [272.76, 67.16], spin: -0.004, r: 9.5, file: 'venus', k4: true },
+  { name: 'Mars', el: [1.52371034, 0.09339410, 1.84969142, -4.55343205, -23.94362959, 49.55953891, 19140.30268499], pole: [317.68, 52.89], spin: 0.05, r: 5.32, file: 'mars', k4: true },
+  { name: 'Jupiter', el: [5.20288700, 0.04838624, 1.30439695, 34.39644051, 14.72847983, 100.47390909, 3034.74612775], pole: [268.05, 64.49], spin: 0.12, r: 112, file: 'jupiter', k4: true },
+  { name: 'Saturn', el: [9.53667594, 0.05386179, 2.48599187, 49.95424423, 92.59887831, 113.66242448, 1222.49362201], pole: [40.59, 83.54], spin: 0.11, r: 94.5, file: 'saturn', k4: true, ring: [1.24, 2.27, 'saturn-ring.png', 1] },
   { name: 'Uranus', el: [19.18916464, 0.04725744, 0.77263783, 313.23810451, 170.95427630, 74.01692503, 428.48202785], pole: [257.31, -15.18], spin: -0.07, r: 40, file: 'uranus', ring: [1.64, 2.0, null, 0.22] },
   { name: 'Neptune', el: [30.06992276, 0.00859048, 1.77004347, -55.12002969, 44.96476227, 131.78422574, 218.45945325], pole: [299.36, 43.46], spin: 0.075, r: 38.8, file: 'neptune' },
 ];
@@ -400,6 +400,7 @@ class Universe {
     this.flyVel = new THREE.Vector3();
     this.flight = null;
     this.jump = null;
+    this.sharp = []; // [slot, key, 4k url, colour?] swapped in by sharpen() after the intro
     this.intro = null;
     this.ray = new THREE.Raycaster();
     this.lookM = new THREE.Matrix4();
@@ -412,7 +413,7 @@ class Universe {
     this.days = (Date.now() - Date.UTC(2000, 0, 1, 12)) / 864e5;
 
     const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', logarithmicDepthBuffer: true });
-    r.setPixelRatio(Math.min(window.devicePixelRatio, this.isMobile ? 1.5 : 1.75));
+    r.setPixelRatio(Math.min(window.devicePixelRatio, this.isMobile ? 1.5 : 2));
     r.setSize(window.innerWidth, window.innerHeight, false);
     r.toneMapping = THREE.ACESFilmicToneMapping;
     this.maxAniso = r.capabilities.getMaxAnisotropy();
@@ -420,8 +421,11 @@ class Universe {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(this.fov(), window.innerWidth / window.innerHeight, 0.5, 60000);
     this.scene.add(this.camera);
-    // Texture progress drives the intro's loading bar.
-    this.loader = new THREE.TextureLoader(new THREE.LoadingManager(undefined, (url, n, total) => window.dispatchEvent(new CustomEvent('sg-load', { detail: n / total }))));
+    // Texture progress drives the intro's loading bar. Chromium decodes images off the main thread (ImageBitmap);
+    // Safari and Firefox keep the plain loader, as three.js itself does, because their bitmap orientation options are unreliable.
+    const manager = new THREE.LoadingManager(undefined, (url, n, total) => window.dispatchEvent(new CustomEvent('sg-load', { detail: n / total })));
+    this.bitmaps = typeof createImageBitmap === 'function' && !/Firefox|^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    this.loader = this.bitmaps ? new THREE.ImageBitmapLoader(manager).setOptions({ imageOrientation: 'flipY', premultiplyAlpha: 'none' }) : new THREE.TextureLoader(manager);
 
     this.buildSky();
     this.buildStars();
@@ -443,15 +447,35 @@ class Universe {
 
   fov() { return window.innerWidth / window.innerHeight < 0.8 ? 58 : 38; }
 
-  tex(url, color = true) {
+  tex(url, color = true, upload = true) {
     return new Promise((resolve) => {
-      this.loader.load(url, (t) => {
+      this.loader.load(url, (img) => {
+        const t = this.bitmaps ? Object.assign(new THREE.Texture(img), { flipY: false, needsUpdate: true }) : img;
         if (color) t.colorSpace = THREE.SRGBColorSpace;
         t.anisotropy = Math.min(8, this.maxAniso);
-        this.renderer.initTexture(t); // upload now, not on first sight
+        if (upload) this.renderer.initTexture(t); // upload now, not on first sight
         resolve(t);
       }, undefined, () => resolve(null));
     });
+  }
+
+  // Desktop swaps every map for its 4k version once the intro is over, one at a time,
+  // so each upload is a short hitch instead of one long stall.
+  async sharpen() {
+    const list = this.sharp;
+    this.sharp = [];
+    if (this.isMobile) return;
+    for (const [slot, key, url, color = true] of list) {
+      const t = await this.tex(url, color, false), old = slot[key];
+      if (!t) continue;
+      t.wrapS = old.wrapS;
+      // Upload only when the browser is idle, so the swap never lands mid-scroll or mid-animation.
+      await new Promise((ok) => (window.requestIdleCallback ? requestIdleCallback(ok, { timeout: 4000 }) : setTimeout(ok, 200)));
+      this.renderer.initTexture(t);
+      slot[key] = t;
+      if (slot.bumpMap === old) slot.bumpMap = t;
+      old.dispose();
+    }
   }
 
   res(name) { return `/textures/ss/${name}-${this.isMobile ? '1k' : '2k'}.webp`; }
@@ -550,6 +574,7 @@ class Universe {
     this.earthOrbit.material.color.set(0x5ee7ff);
     const uniforms = { uDay: { value: day }, uNight: { value: night }, uSpec: { value: spec }, uClouds: { value: clouds }, uSun: { value: new THREE.Vector3() }, uCloudShift: { value: 0 }, uIndia: { value: latLon(22, 79) }, uMumbai: { value: MUMBAI }, uTime: { value: 0 } };
     this.earthUniforms = uniforms;
+    this.sharp.push([uniforms.uClouds, 'value', '/textures/hd/earth-clouds-4k.webp', false], [uniforms.uSpec, 'value', '/textures/hd/earth-spec-4k.webp', false]);
     this.earthBody = new THREE.Mesh(new THREE.SphereGeometry(EARTH_R, seg, seg / 2), new THREE.ShaderMaterial({ ...EARTH, uniforms }));
     // Real orientation: pole from the obliquity, Greenwich from sidereal time (GMST).
     const gmst = (280.46061837 + 360.98564736629 * this.days) * DEG;
@@ -589,6 +614,7 @@ class Universe {
     this.moon.userData.pole = UP.clone();
     this.moon.userData.baseSpin = 0; // tidally locked: no spin of its own
     this.moon.userData.root = this.earth;
+    this.sharp.push([this.moon.material, 'map', '/textures/ss/moon-4k.webp']);
   }
 
   async buildPlanet(p) {
@@ -601,6 +627,7 @@ class Universe {
     const body = new THREE.Mesh(new THREE.SphereGeometry(p.r, seg, seg / 2), new THREE.MeshStandardMaterial({ map, roughness: 1, metalness: 0 }));
     body.rotation.y = Math.random() * Math.PI * 2;
     body.userData.baseSpin = p.spin;
+    if (p.k4) this.sharp.push([body.material, 'map', `/textures/ss/${p.file}-4k.webp`]);
     body.userData.pole = poleVector(...p.pole);
     axis.add(body);
     if (p.ring) {
@@ -615,6 +642,7 @@ class Universe {
       }));
       ring.rotation.x = Math.PI / 2;
       ring.renderOrder = 1;
+      if (file) this.sharp.push([ring.material.uniforms.uMap, 'value', '/textures/ss/saturn-ring-4k.png']);
       axis.add(ring);
     }
     holder.add(axis);
@@ -852,8 +880,6 @@ class Universe {
     const t = (performance.now() - it.start) / 1000;
     if (t < it.glideAt) { it.glideAt = t; it.glideFor = 1.4; }
   }
-
-  sunScreen() { return new THREE.Vector3().project(this.camera); }
 
   introFrame() {
     const it = this.intro, cam = this.camera, R = EARTH_R, E = this.earth.position;

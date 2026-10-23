@@ -35,12 +35,13 @@
 <script>document.documentElement.classList.add('js');setTimeout(function(){var s=document.getElementById('site');if(s)s.classList.add('visible')},9000)</script>
 <link rel="stylesheet" href="/styles.css">
 
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-4WE87CDKYL"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-4WE87CDKYL', { 'debug_mode': true });
+  // Analytics loads after the page; events wait in dataLayer until it arrives, so none are lost.
+  addEventListener('load', () => setTimeout(() => document.head.append(Object.assign(document.createElement('script'), { async: true, src: 'https://www.googletagmanager.com/gtag/js?id=G-4WE87CDKYL' })), 2000));
 </script>
 
 <script type="application/ld+json">
@@ -252,19 +253,19 @@
     </div>
     <div class="orbs orbs-clients">
       <canvas class="orbs-canvas" aria-hidden="true"></canvas>
-      <a href="https://www.instagram.com/ashokdadapandya" target="_blank" rel="noopener" class="orb reveal" style="--i:1" data-img="/assets/opt/ig-ashok.webp" aria-label="Ashok Dada Pandya on Instagram">
+      <a href="https://www.instagram.com/ashokdadapandya" target="_blank" rel="noopener" class="orb reveal" style="--i:1" data-img="/assets/ig-ashok.jpg" aria-label="Ashok Dada Pandya on Instagram">
         <span class="orb-ball"><img src="/assets/opt/ig-ashok.webp" alt="" width="80" height="80" loading="lazy"></span>
         <span class="orb-name">Ashok Dada Pandya</span>
       </a>
-      <a href="https://www.instagram.com/mamatawomenshospital" target="_blank" rel="noopener" class="orb reveal" style="--i:2" data-img="/assets/opt/ig-mamata.webp" aria-label="Mamata Women's Hospital on Instagram">
+      <a href="https://www.instagram.com/mamatawomenshospital" target="_blank" rel="noopener" class="orb reveal" style="--i:2" data-img="/assets/ig-mamata.jpg" aria-label="Mamata Women's Hospital on Instagram">
         <span class="orb-ball"><img src="/assets/opt/ig-mamata.webp" alt="" width="80" height="80" loading="lazy"></span>
         <span class="orb-name">Mamata Women's Hospital</span>
       </a>
-      <a href="https://www.instagram.com/navdurga_garba" target="_blank" rel="noopener" class="orb reveal" style="--i:3" data-img="/assets/opt/ig-navdurga.webp" aria-label="Navdurga Garba on Instagram">
+      <a href="https://www.instagram.com/navdurga_garba" target="_blank" rel="noopener" class="orb reveal" style="--i:3" data-img="/assets/ig-navdurga.jpg" aria-label="Navdurga Garba on Instagram">
         <span class="orb-ball"><img src="/assets/opt/ig-navdurga.webp" alt="" width="80" height="80" loading="lazy"></span>
         <span class="orb-name">Navdurga Garba</span>
       </a>
-      <a href="https://www.instagram.com/school_guruglobal" target="_blank" rel="noopener" class="orb reveal" style="--i:4" data-img="/assets/opt/ig-guru.webp" aria-label="Guru Global Preschool on Instagram">
+      <a href="https://www.instagram.com/school_guruglobal" target="_blank" rel="noopener" class="orb reveal" style="--i:4" data-img="/assets/ig-guru.jpg" aria-label="Guru Global Preschool on Instagram">
         <span class="orb-ball"><img src="/assets/opt/ig-guru.webp" alt="" width="80" height="80" loading="lazy"></span>
         <span class="orb-name">Guru Global Preschool</span>
       </a>
@@ -316,10 +317,10 @@
     </div>
     <div class="tq reveal" aria-roledescription="carousel" aria-label="Client testimonials" id="tq">
       <div class="tq-stage" aria-live="off" id="tq-stage">
-      <figure class="tq-slide on" role="group" aria-roledescription="slide" aria-label="1 of 4"><blockquote>SpaceGrow didn't just give us posts; they gave us a complete growth strategy. Our lead generation increased by 300% within the first two months, and the content is unmatched.</blockquote><figcaption><img class="tq-av" src="/assets/opt/ig-mamata.webp" alt="" width="52" height="52" loading="lazy"><b>Dr. Maheshweta Guru Mehta</b><span>Mamata Women's Hospital</span></figcaption></figure>
-      <figure class="tq-slide" role="group" aria-roledescription="slide" aria-label="2 of 4" aria-hidden="true"><blockquote>SpaceGrow Media helped us connect with more parents and build trust in our community. Their creative content and consistent social media management increased inquiries and admissions significantly. We highly recommend their team for any preschool looking to grow its presence online.</blockquote><figcaption><img class="tq-av" src="/assets/opt/ig-guru.webp" alt="" width="52" height="52" loading="lazy"><b>Director</b><span>Guru Global Preschool</span></figcaption></figure>
-      <figure class="tq-slide" role="group" aria-roledescription="slide" aria-label="3 of 4" aria-hidden="true"><blockquote>Working directly with the founder makes all the difference. Fast communication, zero confusion, and premium design work. Highly recommend SpaceGrow Media.</blockquote><figcaption><img class="tq-av" src="/assets/opt/ig-navdurga.webp" alt="" width="52" height="52" loading="lazy"><b>Director of Marketing</b><span>Navdurga Events</span></figcaption></figure>
-      <figure class="tq-slide" role="group" aria-roledescription="slide" aria-label="4 of 4" aria-hidden="true"><blockquote>SpaceGrow Media helped us transform our social media presence and reach thousands of devotees through engaging reels and professional content strategy. Our video views increased significantly, audience engagement grew consistently, and our message now reaches people far beyond our local community.</blockquote><figcaption><img class="tq-av" src="/assets/opt/ig-ashok.webp" alt="" width="52" height="52" loading="lazy"><b>Ashok Dada Pandya</b><span>Spiritual Speaker &amp; Social Leader</span></figcaption></figure>
+      <figure class="tq-slide on" aria-roledescription="slide" aria-label="1 of 4"><blockquote>SpaceGrow didn't just give us posts; they gave us a complete growth strategy. Our lead generation increased by 300% within the first two months, and the content is unmatched.</blockquote><figcaption><img class="tq-av" src="/assets/opt/ig-mamata.webp" alt="" width="52" height="52" loading="lazy"><b>Dr. Maheshweta Guru Mehta</b><span>Mamata Women's Hospital</span></figcaption></figure>
+      <figure class="tq-slide" aria-roledescription="slide" aria-label="2 of 4" aria-hidden="true"><blockquote>SpaceGrow Media helped us connect with more parents and build trust in our community. Their creative content and consistent social media management increased inquiries and admissions significantly. We highly recommend their team for any preschool looking to grow its presence online.</blockquote><figcaption><img class="tq-av" src="/assets/opt/ig-guru.webp" alt="" width="52" height="52" loading="lazy"><b>Director</b><span>Guru Global Preschool</span></figcaption></figure>
+      <figure class="tq-slide" aria-roledescription="slide" aria-label="3 of 4" aria-hidden="true"><blockquote>Working directly with the founder makes all the difference. Fast communication, zero confusion, and premium design work. Highly recommend SpaceGrow Media.</blockquote><figcaption><img class="tq-av" src="/assets/opt/ig-navdurga.webp" alt="" width="52" height="52" loading="lazy"><b>Director of Marketing</b><span>Navdurga Events</span></figcaption></figure>
+      <figure class="tq-slide" aria-roledescription="slide" aria-label="4 of 4" aria-hidden="true"><blockquote>SpaceGrow Media helped us transform our social media presence and reach thousands of devotees through engaging reels and professional content strategy. Our video views increased significantly, audience engagement grew consistently, and our message now reaches people far beyond our local community.</blockquote><figcaption><img class="tq-av" src="/assets/opt/ig-ashok.webp" alt="" width="52" height="52" loading="lazy"><b>Ashok Dada Pandya</b><span>Spiritual Speaker &amp; Social Leader</span></figcaption></figure>
       </div>
       <div class="tq-controls">
         <div class="tq-tabs"><button type="button" class="tq-tab" data-i="0" aria-label="Show testimonial 1: Mamata Women's Hospital" aria-current="true"><span class="tq-bar"></span>Mamata Women's Hospital</button><button type="button" class="tq-tab" data-i="1" aria-label="Show testimonial 2: Guru Global Preschool"><span class="tq-bar"></span>Guru Global Preschool</button><button type="button" class="tq-tab" data-i="2" aria-label="Show testimonial 3: Navdurga Events"><span class="tq-bar"></span>Navdurga Events</button><button type="button" class="tq-tab" data-i="3" aria-label="Show testimonial 4: Spiritual Speaker &amp; Social Leader"><span class="tq-bar"></span>Ashok Dada Pandya</button></div>
@@ -540,18 +541,15 @@
       <canvas class="orbs-canvas" aria-hidden="true"></canvas>
       <a href="https://instagram.com/spacegrowmedia" target="_blank" rel="noopener" class="orb orb-ig reveal" data-net="ig" aria-label="SpaceGrow Media on Instagram">
         <span class="orb-ball"><svg class="i-solid" aria-hidden="true"><use href="#i-ig"/></svg></span>
-        <span class="handle"><svg class="i-solid" width="14" height="14" aria-hidden="true"><use href="#i-ig"/></svg>@spacegrowmedia</span>
-        <span class="go">View Profile <svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+        <span class="handle"><svg class="i-solid" width="14" height="14" aria-hidden="true"><use href="#i-ig"/></svg>@spacegrowmedia</span>
       </a>
       <a href="https://www.linkedin.com/company/spacegrow-media/" target="_blank" rel="noopener" class="orb orb-in reveal" style="--i:1" data-net="in" aria-label="SpaceGrow Media on LinkedIn">
         <span class="orb-ball"><svg class="i-solid" aria-hidden="true"><use href="#i-in"/></svg></span>
-        <span class="handle"><svg class="i-solid" width="14" height="14" aria-hidden="true"><use href="#i-in"/></svg>LinkedIn Page</span>
-        <span class="go">View Profile <svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+        <span class="handle"><svg class="i-solid" width="14" height="14" aria-hidden="true"><use href="#i-in"/></svg>LinkedIn Page</span>
       </a>
       <a href="https://www.facebook.com/share/1CkVVa8vD4/" target="_blank" rel="noopener" class="orb orb-fb reveal" style="--i:2" data-net="fb" aria-label="SpaceGrow Media on Facebook">
         <span class="orb-ball"><svg class="i-solid" aria-hidden="true"><use href="#i-fb"/></svg></span>
-        <span class="handle"><svg class="i-solid" width="14" height="14" aria-hidden="true"><use href="#i-fb"/></svg>Facebook Page</span>
-        <span class="go">View Page <svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+        <span class="handle"><svg class="i-solid" width="14" height="14" aria-hidden="true"><use href="#i-fb"/></svg>Facebook Page</span>
       </a>
     </div>
   </div>

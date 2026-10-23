@@ -1,4 +1,3 @@
-import { nextFact } from './facts.js';
 import Lenis from 'lenis';
 
 document.documentElement.classList.add('rv');
@@ -137,7 +136,8 @@ function finishIntro() {
   lenis?.start();
   bootScene();
   startReveals();
-  setTimeout(initOrbs, 3000); // their WebGL start-up would stutter the intro's glide
+  // After the glide: orb WebGL start-up and the 4k map swaps would otherwise stutter it.
+  setTimeout(() => { initOrbs(); bootScene().then((u) => u?.sharpen()); }, 3000);
 }
 
 function runIntro() {
@@ -350,12 +350,13 @@ function initAnalytics() {
 }
 
 /* The whole background is touchable: grab a planet to spin it on its axis, drag empty space to look around. */
-const SOLID = 'a, button, input, select, textarea, label, p, h1, h2, h3, li, blockquote, figure, img, .card, .case, .why-card, .quote, .addon, .step, .faq-list, .cf, .method, .stats, .price, .social, .pill, .badge, .nav, .mob, #wa-float, footer';
+const SOLID = 'a, button, input, select, textarea, label, p, h1, h2, h3, li, blockquote, figure, img, .card, .case, .why-card, .addon, .step, .faq-list, .cf, .method, .stats, .price, .social, .pill, .badge, .nav, .mob, #wa-float, footer';
 function initSpaceDrag() {
   let drag = null;
   const isSpace = (t) => t instanceof Element && !t.closest(SOLID);
   document.addEventListener('pointerdown', (e) => {
     if (!universe || e.button > 0 || (e.target instanceof Element && e.target.closest('.explore-hud button, .hud-info, .explore-btn')) || !(exploring || isSpace(e.target))) return;
+    if (e.pointerType !== 'touch') e.preventDefault(); // a drag must not start a text selection
     universe.grab(e.clientX, e.clientY);
     drag = { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t: performance.now(), touch: e.pointerType === 'touch' };
     document.documentElement.classList.add('grabbing');
@@ -411,7 +412,7 @@ async function showFun() {
   if (!funName) return;
   const token = ++funToken, el = $('hud-fun');
   el.style.opacity = '0';
-  const f = await nextFact(funName);
+  const f = await (await import('./facts.js')).nextFact(funName); // facts load on first use, in explore mode only
   if (token !== funToken) return;
   setTimeout(() => {
     el.textContent = f.t;
