@@ -339,7 +339,7 @@ function initAnalytics() {
 }
 
 /* The whole background is touchable: grab a planet to spin it on its axis, drag empty space to look around. */
-const SOLID = 'a, button, input, select, textarea, label, p, h1, h2, h3, li, blockquote, figure, img, .card, .profile, .case, .why-card, .quote, .addon, .step, .faq-list, .cf, .method, .stats, .price, .social, .pill, .badge, .nav, .mob, #wa-float, footer';
+const SOLID = 'a, button, input, select, textarea, label, p, h1, h2, h3, li, blockquote, figure, img, .card, .case, .why-card, .quote, .addon, .step, .faq-list, .cf, .method, .stats, .price, .social, .pill, .badge, .nav, .mob, #wa-float, footer';
 function initSpaceDrag() {
   let drag = null;
   const isSpace = (t) => t instanceof Element && !t.closest(SOLID);
