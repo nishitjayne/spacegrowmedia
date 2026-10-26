@@ -989,7 +989,7 @@ class Universe {
     else this.look.copy(this.camera.position).add(this.tmp.off.set(0, 0, -50).applyQuaternion(this.camera.quaternion));
   }
 
-  thrust(amount) { if (this.explore && !this.flight) this.flyVel.addScaledVector(this.tmp.off.set(0, 0, -1).applyQuaternion(this.camera.quaternion), amount * 3); }
+  thrust(amount) { if (this.explore && !this.flight) { this.flyVel.addScaledVector(this.tmp.off.set(0, 0, -1).applyQuaternion(this.camera.quaternion), amount * 3); this.coastUntil = performance.now() + 700; } }
 
   // Click a body: travel there along a gentle arc.
   travel(x, y) { const obj = this.pick(x, y); return obj ? this.travelTo(obj) : null; }
@@ -1063,7 +1063,10 @@ class Universe {
     if (k.a || k.ArrowLeft) this.flyVel.addScaledVector(right, -acc);
     if (k.e) this.flyVel.y += acc;
     if (k.q) this.flyVel.y -= acc;
-    this.flyVel.multiplyScalar(Math.exp(-1.4 * dt));
+    // Held keys accelerate smoothly; let go and the ship brakes to a stop within a few frames.
+    // A scroll or pinch flick still coasts briefly, which is what a flick should feel like.
+    const held = k.w || k.s || k.a || k.d || k.q || k.e || k.ArrowUp || k.ArrowDown || k.ArrowLeft || k.ArrowRight;
+    this.flyVel.multiplyScalar(Math.exp(-(held || performance.now() < (this.coastUntil || 0) ? 1.4 : 9) * dt));
     cam.position.addScaledVector(this.flyVel, dt);
     if (this.flyVel.lengthSq() > 1) this.gaze = null;
     return this.flyVel.length();

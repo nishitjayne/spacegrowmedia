@@ -152,8 +152,10 @@ em, .serif { font-family: var(--f-serif); font-style: italic; font-weight: 400; 
 /* ───────── Nav ───────── */
 .nav { position: fixed; inset: 0 0 auto; z-index: 100; height: var(--nav-h); transition: transform 0.6s var(--expo), background-color 0.5s var(--ease), border-color 0.5s, backdrop-filter 0.5s; border-bottom: 1px solid transparent; }
 .nav { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 18px rgba(0, 0, 0, 0.8); }
-.nav::before { content: ""; position: absolute; inset: 0 0 -36px; z-index: -1; pointer-events: none; background: linear-gradient(to bottom, rgba(3, 4, 10, 0.9), rgba(3, 4, 10, 0.55) 60%, transparent); opacity: 0; transition: opacity 0.5s var(--ease); }
-.nav.scrolled::before { opacity: 0; }
+/* Scrolled: whatever passes under the nav is blurred and dimmed, fading out downward. No box, no edge, so the nav
+   still reads as transparent, but text underneath can no longer collide with the links. */
+.nav::before { content: ""; position: absolute; inset: 0 0 -36px; z-index: -1; pointer-events: none; background: linear-gradient(to bottom, rgba(3, 4, 10, 0.7), rgba(3, 4, 10, 0.35) 60%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent); mask-image: linear-gradient(to bottom, #000 55%, transparent); opacity: 0; transition: opacity 0.5s var(--ease); }
+.nav.scrolled::before { opacity: 1; }
 .nav-explore { white-space: nowrap; flex: none; display: inline-flex; align-items: center; gap: 0.45rem; height: 44px; padding: 0 1rem; border-radius: 999px; border: 1px solid var(--line-2); background: rgba(255, 255, 255, 0.04); font-weight: 600; font-size: 0.9rem; transition: border-color 0.3s, background-color 0.3s; }
 .nav-explore svg { color: var(--accent); }
 .nav-in { height: 100%; display: flex; align-items: center; gap: 1.5rem; }
@@ -246,6 +248,23 @@ section, main { touch-action: pan-y; }
 .price-n { font: 400 clamp(2.8rem, 6vw, 4.6rem)/1 var(--f-display); letter-spacing: -0.05em; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .price-n small { font: 400 1.1rem var(--f-body); color: var(--muted); -webkit-text-fill-color: var(--muted); margin-left: 0.3rem; letter-spacing: 0; }
 .price-s { color: var(--muted); }
+/* The starter plan is the headline offer: a brand-gradient ring, a soft glow and a bigger price.
+   The ring is static on purpose; an animated one would repaint the whole card every frame. */
+.price { position: relative; box-shadow: 0 0 70px -24px rgba(94, 231, 255, 0.45), 0 0 140px -50px rgba(155, 107, 255, 0.5); }
+.price::after { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; background: linear-gradient(120deg, #5ee7ff, #4f7dff 45%, #9b6bff); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); pointer-events: none; }
+.price-n { font-size: clamp(3.4rem, 8vw, 6rem); font-weight: 500; }
+/* Hover: the card lifts, the glow and ring brighten, the price grows a touch and a soft light sweeps across once. */
+.price::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.08) 50%, transparent 65%) -100% 0 / 250% 100% no-repeat; }
+@media (any-hover: hover) and (prefers-reduced-motion: no-preference) {
+  /* keeps the scroll-reveal transitions and adds the hover ones; the lift uses translate so it never fights the reveal transform */
+  .rv .price.reveal { transition: opacity 1.1s var(--expo), transform 1.3s var(--expo), filter 1.1s var(--expo), translate 0.5s var(--expo), box-shadow 0.5s var(--ease); }
+  .price::after { opacity: 0.8; transition: opacity 0.5s var(--ease); }
+  .price-n { transition: transform 0.5s var(--expo); }
+  .price:hover { translate: 0 -4px; box-shadow: 0 0 90px -20px rgba(94, 231, 255, 0.6), 0 0 180px -50px rgba(155, 107, 255, 0.7); }
+  .price:hover::after { opacity: 1; }
+  .price:hover::before { background-position: 200% 0; transition: background-position 1.1s var(--ease); }
+  .price:hover .price-n { transform: scale(1.04); }
+}
 
 /* ───────── Process ───────── */
 .proc { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(3rem, 7vw, 6rem); align-items: start; }
@@ -606,7 +625,8 @@ section { padding-block: clamp(4rem, 8vw, 6.5rem); }
 .orbs.gl .orb-ball { background: none; box-shadow: none; }
 .orbs.gl .orb-ball svg, .orbs.gl .orb-ball img { visibility: hidden; }
 .orb-ball img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-.orbs-clients { grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 960px); }
+.orbs-clients { grid-template-columns: repeat(5, minmax(0, 1fr)); width: min(100%, 1100px); max-width: none; }
+.orbs-clients .orb { padding-inline: 0; } /* the sphere must fit its column, or it sits off-centre */
 .orbs-clients .orb-ball { width: clamp(88px, 10vw, 128px); }
 .orb-name { font-size: 0.86rem; line-height: 1.35; color: var(--muted); max-width: 16ch; transition: color 0.3s var(--ease); }
 .orb .handle { justify-content: center; white-space: nowrap; overflow-wrap: normal; }
@@ -620,5 +640,7 @@ section { padding-block: clamp(4rem, 8vw, 6.5rem); }
   .orbs:not(.orbs-clients) { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
   .orbs:not(.orbs-clients) .orb { grid-template-columns: 88px minmax(0, 1fr); justify-items: start; align-items: center; column-gap: 1.2rem; row-gap: 0.35rem; text-align: left; padding: 0.6rem 0; }
   .orbs:not(.orbs-clients) .orb-ball { width: 88px; margin: 0; }
-  .orbs-clients { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 1rem; }
+  .orbs-clients { grid-template-columns: repeat(6, minmax(0, 1fr)); row-gap: 1rem; column-gap: 0.25rem; }
+  .orbs-clients .orb { grid-column: span 2; padding-inline: 0; }
+  .orbs-clients .orb:nth-of-type(4) { grid-column: 2 / span 2; } /* centre the second row */
 }
