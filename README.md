@@ -1,67 +1,82 @@
-# SpaceGrow Media
+# SpaceGrow Media — v2
 
-> **I spun this into the digital ether to redefine the agency experience.** A high-performance, visually engaging 3D marketing universe for **SpaceGrow Media**.
-> 
-> 💻 *(For maximum visual fidelity and the full immersive experience, boot this up on a desktop or laptop.)*
+The marketing site for **SpaceGrow Media**, a Mumbai social media and growth agency, rebuilt around a real-scale 3D solar system.
 
-**Live URL**: [www.spacegrowmedia.com](https://www.spacegrowmedia.com)
+**Live (v2):** https://spacegrow-v2.vercel.app
+**Current production site (v1):** https://www.spacegrowmedia.com
 
----
+## What it does
 
-## 🚀 About the Project
+- **Intro:** a sunrise over Earth's limb in low orbit. The brand name rises with the Sun, then docks into the navbar in one continuous move while the camera glides down to the hero.
+- **3D background:** the Sun, all eight planets, the Moon and the asteroid belt sit where they really are today (orbital elements from J2000), with true relative sizes and axial tilts. Earth's day, night, clouds and atmosphere are lit by the Sun, and a pin marks Mumbai.
+- **Explore mode:** the page steps aside and space becomes free to fly. Drag, or hold Space, to look around. Scroll or W A S D to fly, Q / E to go down or up, Shift to boost, and click a planet to travel to it. Each body shows real facts and a stream of "did you know" facts.
+- **Brand and social spheres:** clients and social profiles appear as glossy 3D spheres, drawn by the scene's own renderer.
+- **Lead capture:** WhatsApp audit form, WhatsApp, email and Instagram links, and downloadable case studies.
 
-SpaceGrow Media is a digital agency specializing in Meta Ads, Website & App Development, and Content Creation (Reels & Strategy). This repository houses their official marketing website, built to showcase their services, portfolio, and "Why Us" value propositions.
+## Run it
 
-The website was designed to break away from traditional "boring" agency websites by incorporating an interactive, performant 3D space-themed background. It is built as a highly optimized static single-page application (SPA) focused on speed, SEO, and lead generation.
+```bash
+npm install
+npm run dev      # http://localhost:4173
+npm run build    # production build in dist/
+npm run preview  # serve the build
+```
 
-## ✨ Core Features
+Add `?intro` to the URL to replay the intro; it plays once per browser session.
 
-- **Interactive 3D Background**: A fully responsive, animated solar system built with WebGL and Three.js, featuring rotating planets, dynamic lighting, and particle effects.
-- **Premium Aesthetics**: High-contrast dark mode design with vibrant neon accents (`#00e5ff` Cyan, `#a020f0` Deep Purple, and `#ccff00` Lime) and glassmorphism elements.
-- **Dynamic Integrations & Lead Generation**: 
-  - Frictionless contact forms with direct WhatsApp and Calendly scheduling integrations.
-  - Direct-to-Gmail optimized `mailto` links preventing OS-level mail app freezes.
-  - Interactive, hover-activated social media profile cards.
-- **Conversion-Optimized Copy & Trust Signals**: Focuses on hard numerical results (500k+ views), clear value propositions, and a dedicated "Brands We've Worked With" client showcase.
-- **Responsive Layout**: Fluid typography, CSS Grid/Flexbox layouts, and optimized touch targets ensuring a seamless experience across desktop, tablet, and mobile devices.
-- **SEO Ready**: Fully configured with `sitemap.xml`, `robots.txt`, Open Graph / Twitter meta tags, and structured JSON-LD schema data for local business visibility.
+## Code
 
-## 🏗️ Technical Architecture & Structure
+| File | What's in it |
+| --- | --- |
+| `index.html` | All page content, SEO meta, structured data, analytics loader |
+| `styles.css` | All styles: design tokens on `:root`, one section per page area, responsive and reduced-motion rules at the end |
+| `app.js` | Intro, smooth scroll, reveals, nav, forms, testimonials, explore mode, analytics events |
+| `scene.js` | The 3D solar system (Three.js), loaded only after the name is on screen |
+| `socials.js` | The 3D brand and social spheres, loaded when their section comes near |
+| `facts.js` | Explore-mode facts, loaded only in explore mode |
+| `public/` | Fonts, textures (1k / 2k / 4k), images, case-study PDFs, `logo.svg` / `logo.png`, 404 page, robots and sitemap |
+| `vercel.json` | Build settings, security headers, caching, `/logo` route |
 
-The project is structured for maximum maintainability and separation of concerns:
+## Performance
 
-- **Component Modularity**: While contained in a single page (`index.html`), the UI is semantically separated into distinct sections (Hero, Services, Portfolio, FAQ, Contact).
-- **Decoupled 3D Logic**: The complex WebGL rendering is entirely encapsulated within `space-bg.js` via an object-oriented `SpaceScene` class, keeping the main application logic (`app.js`) clean and focused on DOM interactions.
-- **Vanilla Superiority**: No heavy CSS frameworks (like Bootstrap or Tailwind) were used. The site relies on a highly specific, lightweight vanilla CSS implementation (`styles.css`) using CSS variables for theming.
+- Only 13 KB of JavaScript (gzipped) loads with the page. Three.js, the scene, the spheres and the facts each load when needed.
+- All shaders compile in the background before the first 3D frame, and 4K textures swap in only while the page is still.
+- The page is pre-drawn during the intro, so the hand-over from intro to page has no dropped frames.
+- **Light mode** (devices with 4 or fewer cores or 4 GB or less of memory, or any device that can't hold a smooth frame rate) drops glass blur, 4K textures and the 3D spheres, and renders at 1×.
+- Layout shift is zero, and fonts are self-hosted and preloaded.
+- Visitors who prefer reduced motion get no intro and no animation.
 
-## ⚡ Performance & Optimizations
+## Responsive
 
-Building a heavy 3D website while maintaining a 90+ Lighthouse score required aggressive optimization strategies across the entire stack.
+Checked on 19 screen sizes, from a 320 px phone to a 2560 px desktop, portrait and landscape, with no sideways scrolling, clipped text, words broken mid-word or overlapping text.
 
-### 1. 3D & WebGL Optimizations (The "Old" Optimizations)
-- **Memory Management**: Implemented strict `dispose()` methods on all Three.js geometries, materials, and textures to prevent WebGL memory leaks during navigation or resizing.
-- **Device Capability Checks**: The application dynamically scales rendering fidelity based on the device. On mobile, it reduces the star count, disables asteroid rendering, and lowers the device pixel ratio to maintain 60FPS.
-- **ResizeObserver Integration**: Instead of binding to the expensive `window.resize` event, the 3D canvas uses a `ResizeObserver` to efficiently update the camera aspect ratio and renderer size only when necessary.
-- **Graceful Degradation**: If WebGL initialization fails or is unsupported by the browser, the application catches the error and degrades gracefully to a static CSS-grid background without breaking the site.
+## SEO
 
-### 2. Build & Asset Optimizations (The "New" Optimizations)
-- **Manual Chunk Splitting**: Implemented custom Rollup configurations in Vite to separate the hefty Three.js library (`~475 KB`) into its own chunk, allowing the lightweight application logic (`~14 KB`) to load and execute in parallel.
-- **Asset Hardening**: Removed ~48 MB of uncompressed source images from the production build. Replaced text-based emojis with 26 lightweight, scalable inline SVGs, saving HTTP requests and ensuring cross-device rendering consistency.
-- **Dead Code Elimination**: Rigorously audited and removed over 100 lines of orphaned CSS and JavaScript, including legacy third-party iframe loaders that were blocking the main thread.
-- **CSS Specificity Overhaul**: Eliminated over 30 instances of `!important` declarations by restructuring CSS selectors for natural specificity, making the codebase highly maintainable and reducing the CSS payload.
+Lighthouse SEO and Accessibility are both 100. The site has:
 
-### 3. Network & Delivery Optimizations
-- **Lazy Loading**: All off-screen images and assets are deferred using native `loading="lazy"`.
-- **Security & Caching**: Integrated strict security headers (`HSTS`, `X-Frame-Options`, `X-Content-Type-Options`) and aggressive cache-control strategies (`immutable` for hashed Vite assets, `must-revalidate` for HTML documents).
+- a title and description
+- a canonical URL (pointing to www.spacegrowmedia.com)
+- Open Graph and Twitter cards
+- JSON-LD structured data (ProfessionalService, WebSite, FAQPage)
+- `robots.txt` and `sitemap.xml`
+- a single `h1` and semantic sections
+- alt text and labelled controls
 
-## 🛠️ Technology Stack
+## Analytics
 
-- **Core**: HTML5, CSS3, Vanilla JavaScript
-- **3D Graphics**: [Three.js](https://threejs.org/) (v0.166)
-- **Build & Bundling**: [Vite](https://vitejs.dev/)
-- **Typography**: Google Fonts (Syne, DM Mono)
-- **Icons**: Custom scalable inline SVGs
+- **Google Analytics 4** (`G-4WE87CDKYL`) loads 2 s after the page and queues events until then. It tracks WhatsApp, email and strategy-call clicks, case-study downloads, social clicks, form leads (`generate_lead`), scroll depth and explore mode.
+- **Vercel Web Analytics** loads on `*.vercel.app`. To switch it on, open the `spacegrow-v2` project in Vercel, go to **Analytics**, click **Enable**, then redeploy.
 
-## 📄 License
+## Deploy
 
-ISC © SpaceGrow Media
+```bash
+vercel deploy --prod   # project: spacegrow-v2
+```
+
+The site's logo is also served at `/logo`, `/logo.svg` and `/logo.png`.
+
+## Credits
+
+Planet textures: [Solar System Scope](https://www.solarsystemscope.com/textures/) (CC BY 4.0). Fonts: Sora, Inter, Instrument Serif, JetBrains Mono (SIL Open Font License).
+
+© SpaceGrow Media

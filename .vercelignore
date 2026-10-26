@@ -1,0 +1,6 @@
+source-assets
+dist
+node_modules
+.agents
+.claude
+.vercel
