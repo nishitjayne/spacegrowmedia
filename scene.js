@@ -922,10 +922,9 @@ class Universe {
       this.earthUniforms.uSun.value.copy(this.earth.position).negate().normalize();
       if (this.earthSpin && this.grabbed !== this.earthBody) {
         const e = this.earthSpin;
-        this.earthBody.rotateOnWorldAxis(e.up, e.vx * dt);
-        this.earthBody.rotateOnWorldAxis(e.right, e.vy * dt);
-        e.vx *= Math.exp(-1.8 * dt); e.vy *= Math.exp(-1.8 * dt);
-        if (Math.abs(e.vx) + Math.abs(e.vy) < 1e-3) this.earthSpin = null;
+        this.earthBody.rotateY(e.v * dt); // its own axis: local Y is true north
+        e.v *= Math.exp(-1.8 * dt);
+        if (Math.abs(e.v) < 1e-3) this.earthSpin = null;
       }
       if (!REDUCED) this.earthBody.rotateY(dt * 0.004);
       this.earthUniforms.uCloudShift.value = (this.time * 0.0016) % 1;
@@ -1042,13 +1041,14 @@ class Universe {
 
   drag(dx, dy, dt) {
     const g = this.grabbed, s = Math.max(dt, 0.008);
-    const camUp = this.tmp.off.set(0, 1, 0).applyQuaternion(this.camera.quaternion);
     const camRight = this.tmp.side.set(1, 0, 0).applyQuaternion(this.camera.quaternion);
     if (g === this.earthBody) {
-      // Free rotation like a globe in the hand: right-drag turns the face right, up-drag turns it up.
-      g.rotateOnWorldAxis(camUp, dx * 0.006);
-      g.rotateOnWorldAxis(camRight, dy * 0.006);
-      this.earthSpin = { up: camUp.clone(), right: camRight.clone(), vx: THREE.MathUtils.clamp((dx * 0.006) / s, -4, 4), vy: THREE.MathUtils.clamp((dy * 0.006) / s, -4, 4) };
+      // Earth turns only on its own axis, like the real planet: the facing side follows the cursor, it never tumbles.
+      const north = new THREE.Vector3(0, 1, 0).applyQuaternion(g.getWorldQuaternion(this.tmpQ));
+      const toCam = new THREE.Vector3().subVectors(this.camera.position, g.getWorldPosition(new THREE.Vector3())).normalize();
+      const a = dx * 0.006 * (Math.sign(new THREE.Vector3().crossVectors(north, toCam).dot(camRight)) || 1);
+      g.rotateY(a);
+      this.earthSpin = { v: THREE.MathUtils.clamp(a / s, -4, 4) };
     } else if (g) {
       // Planets turn only on their own pole, in whichever direction makes the facing side follow the cursor.
       const pole = this.tmp.q.copy(g.userData.pole);
@@ -1221,12 +1221,14 @@ class Universe {
     for (const L of this.labels) if (!L.want && L.on) { L.on = false; L.el.classList.remove('on'); }
     for (const L of order) {
       L.w ||= Math.round(L.el.textContent.length * 7.4) + 34; // estimated: reading layout here forced a full-page reflow
-      const box = [L.x + 6, L.y - 18, L.x + 18 + L.w, L.y + 18];
+      // Near the right edge the label goes on the left of its point instead, so it is never cut off.
+      const left = L.x + 18 + L.w > w - 8, lx = left ? L.x - L.w - 24 : L.x;
+      const box = [lx + 6, L.y - 18, lx + 18 + L.w, L.y + 18];
       const clash = placed.some((q) => box[0] < q[2] && box[2] > q[0] && box[1] < q[3] && box[3] > q[1]);
       if (clash) { if (L.on) { L.on = false; L.el.classList.remove('on'); } continue; }
       placed.push(box);
       if (!L.on) { L.on = true; L.el.classList.add('on'); }
-      L.el.style.transform = `translate3d(${L.x.toFixed(1)}px, ${L.y.toFixed(1)}px, 0)`;
+      L.el.style.transform = `translate3d(${lx.toFixed(1)}px, ${L.y.toFixed(1)}px, 0)`;
     }
   }
 

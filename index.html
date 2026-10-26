@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="facebook-domain-verification" content="ig21oxm2k3mkdnhdoyrop1lz1anide" />
 <meta charset="UTF-8">
+<meta name="facebook-domain-verification" content="ig21oxm2k3mkdnhdoyrop1lz1anide" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>SpaceGrow Media | Social Media &amp; Meta Ads Agency, Mumbai</title>
 <meta name="description" content="Mumbai social media agency for reels, content, Meta Ads, websites and apps. Work directly with the founder. Get a free social media growth audit.">
@@ -39,9 +39,14 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-4WE87CDKYL', { 'debug_mode': true });
+  gtag('config', 'G-4WE87CDKYL');
   // Analytics loads after the page; events wait in dataLayer until it arrives, so none are lost.
-  addEventListener('load', () => setTimeout(() => document.head.append(Object.assign(document.createElement('script'), { async: true, src: 'https://www.googletagmanager.com/gtag/js?id=G-4WE87CDKYL' })), 2000));
+  // Vercel Web Analytics too, only where Vercel serves the site (elsewhere its script doesn't exist).
+  addEventListener('load', () => setTimeout(() => {
+    const add = (src) => document.head.append(Object.assign(document.createElement('script'), { async: true, src }));
+    add('https://www.googletagmanager.com/gtag/js?id=G-4WE87CDKYL');
+    if (location.hostname.endsWith('.vercel.app')) add('/_vercel/insights/script.js');
+  }, 2000));
 </script>
 
 <script type="application/ld+json">
@@ -186,10 +191,10 @@
   <div class="wrap nav-in">
     <a href="#hero" class="brand" aria-label="SpaceGrow Media, back to top">
       <svg class="brand-mark" aria-hidden="true"><use href="#i-mark"/></svg>
-      <span class="brand-word">SpaceGrow<small>Media</small></span>
+      <span class="brand-word">SpaceGrow <small>Media</small></span>
     </a>
     <nav aria-label="Main">
-      <ul class="nav-links" id="nav-links">
+      <ul class="nav-links">
         <li><a href="#portfolio">Our Work</a></li>
         <li><a href="#case-studies">Case Studies</a></li>
         <li><a href="#about">About</a></li>
@@ -515,9 +520,9 @@
       </div>
     </div>
     <form class="cf reveal" id="cf" novalidate style="--i:1">
-      <div class="fg"><label for="fn">Your Name</label><input type="text" id="fn" name="name" placeholder="Rahul Sharma" autocomplete="name" required><span class="err" id="e-fn" role="alert"></span></div>
+      <div class="fg"><label for="fn">Your Name</label><input type="text" id="fn" name="name" placeholder="Rahul Sharma" autocomplete="name" required aria-describedby="e-fn"><span class="err" id="e-fn" role="alert"></span></div>
       <div class="fg"><label for="fb">Business Name</label><input type="text" id="fb" name="business" placeholder="Your Business" autocomplete="organization"><span class="err"></span></div>
-      <div class="fg"><label for="fw">WhatsApp Number</label><input type="tel" id="fw" name="phone" placeholder="+91 98765 43210" autocomplete="tel" inputmode="tel"><span class="err" id="e-fw" role="alert"></span></div>
+      <div class="fg"><label for="fw">WhatsApp Number</label><input type="tel" id="fw" name="phone" placeholder="+91 98765 43210" autocomplete="tel" inputmode="tel" aria-describedby="e-fw"><span class="err" id="e-fw" role="alert"></span></div>
       <div class="fg"><label for="fs">What do you need?</label>
         <select id="fs" name="service">
           <option value="">Choose a service</option>
@@ -561,7 +566,7 @@
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <a href="#hero" class="brand"><svg class="brand-mark" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-word">SpaceGrow<small>Media</small></span></a>
+        <a href="#hero" class="brand"><svg class="brand-mark" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-word">SpaceGrow <small>Media</small></span></a>
         <p class="foot-desc">Strategy-led digital growth and technology solutions for premium brands worldwide.</p>
       </div>
       <div class="foot-col"><h3>Services</h3><ul><li><a href="#services">Social Media</a></li><li><a href="#services">Web Development</a></li><li><a href="#services">Meta Ads</a></li><li><a href="#services">App Development</a></li></ul></div>

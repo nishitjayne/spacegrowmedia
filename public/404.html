@@ -3,23 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>404 — SpaceGrow Media</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#03040a">
+<title>Page not found | SpaceGrow Media</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
+  @font-face { font-family: 'Sora'; font-weight: 300 600; font-display: swap; src: url(/fonts/sora.woff2) format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 400 600; font-display: swap; src: url(/fonts/inter.woff2) format('woff2'); }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #030305; color: rgba(255,255,255,0.9); font-family: 'DM Mono', monospace; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
-  .code { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(4rem, 15vw, 10rem); color: transparent; -webkit-text-stroke: 2px #00e5ff; line-height: 1; }
-  .msg { font-size: 1rem; color: rgba(255,255,255,0.5); margin: 1.5rem 0 2.5rem; max-width: 400px; line-height: 1.6; }
-  .back { display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: #00e5ff; border: 1px solid #00e5ff; padding: 1rem 2.5rem; font-family: 'DM Mono', monospace; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; text-decoration: none; box-shadow: 6px 6px 0 #a020f0; transition: all 0.2s; }
-  .back:hover { background: #00e5ff; color: #000; transform: translate(3px, 3px); box-shadow: 3px 3px 0 #a020f0; }
+  body { min-height: 100svh; display: grid; place-content: center; justify-items: center; gap: 1.5rem; padding: 2rem 20px; text-align: center; color: #eef1f7; font: 400 1rem/1.7 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+    background: radial-gradient(ellipse 60% 50% at 80% 70%, rgba(40, 90, 200, 0.18), transparent 70%), radial-gradient(ellipse 50% 40% at 15% 20%, rgba(120, 60, 200, 0.14), transparent 70%), #03040a; }
+  img { width: 72px; height: 72px; filter: drop-shadow(0 0 16px rgba(94, 231, 255, 0.35)); }
+  h1 { font: 400 clamp(4.5rem, 18vw, 9rem)/1 'Sora', system-ui, sans-serif; letter-spacing: -0.05em; background: linear-gradient(120deg, #5ee7ff, #4f7dff 48%, #9b6bff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  p { max-width: 36ch; color: #a3acbf; }
+  a { display: inline-flex; align-items: center; min-height: 54px; padding: 0 1.7rem; border-radius: 999px; background: #eef1f7; color: #05060c; font-weight: 600; text-decoration: none; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3), 0 12px 40px -14px rgba(94, 231, 255, 0.55); transition: box-shadow 0.4s; }
+  a:hover { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5), 0 18px 50px -12px rgba(94, 231, 255, 0.7); }
+  a:focus-visible { outline: 2px solid #5ee7ff; outline-offset: 3px; }
 </style>
 </head>
 <body>
-  <div class="code">404</div>
-  <p class="msg">This page has drifted into deep space. Let's get you back to mission control.</p>
-  <a href="/" class="back">← Back to Home</a>
+  <img src="/logo.svg" alt="SpaceGrow Media">
+  <h1>404</h1>
+  <p>This page has drifted into deep space. Let's get you back to mission control.</p>
+  <a href="/">Back to home</a>
 </body>
 </html>

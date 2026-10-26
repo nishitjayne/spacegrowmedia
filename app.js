@@ -14,7 +14,6 @@ const store = {
   get: (k) => { try { return sessionStorage.getItem(k); } catch { return null; } },
   set: (k, v) => { try { sessionStorage.setItem(k, v); } catch { /* private mode */ } },
 };
-const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
 /* ───────── Smooth scroll ───────── */
 const lenis = reduceMotion ? null : new Lenis({ duration: 1.15, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
@@ -110,7 +109,7 @@ function startReveals() {
   onScroll(() => {
     const r = timeline.getBoundingClientRect();
     const mid = innerHeight * 0.55;
-    timeline.style.setProperty('--p', clamp((mid - r.top) / r.height, 0, 1).toFixed(4));
+    timeline.style.setProperty('--p', Math.min(1, Math.max(0, (mid - r.top) / r.height)).toFixed(4));
     let active = null;
     steps.forEach((s) => { const b = s.getBoundingClientRect(); if (b.top < mid) active = s; });
     steps.forEach((s) => s.classList.toggle('active', s === active));
@@ -149,7 +148,6 @@ function finishIntro() {
   universe?.hurryIntro();
   document.querySelector('.intro-name:not(.dock)')?.remove(); // skipped before the name docked
   lenis?.start();
-  bootScene();
   startReveals();
   whenSeen('[data-count]', countUp); // only now the page shows, so the count-up is seen
   // Once the page is still: building the spheres and the 4k swaps cost a few frames, which a scroll would show.
@@ -537,10 +535,11 @@ function initExplore() {
   document.addEventListener('keydown', (e) => {
     if (!exploring) return;
     if (e.key === 'Escape') { setExplore(false); return; }
-    universe.keys[keyName(e)] = true;
-    if (/^(w|a|s|d|q|e|Arrow)/.test(keyName(e))) $('hud-info').classList.remove('on');
+    const k = keyName(e), fly = /^(Arrow|[wasdqe]$)/.test(k);
+    universe.keys[k] = true;
     universe.keys.Shift = e.shiftKey;
-    if (/^(Arrow|w$|a$|s$|d$|q$|e$| $)/.test(keyName(e))) e.preventDefault();
+    if (fly) $('hud-info').classList.remove('on');
+    if (fly || k === ' ') e.preventDefault();
   });
   document.addEventListener('keyup', (e) => { if (universe) { universe.keys[keyName(e)] = false; universe.keys.Shift = e.shiftKey; } });
   // Wheel and two-finger swipe: up/down flies, left/right turns. A pinch (ctrlKey) flies too; its steps are much smaller.
@@ -563,51 +562,42 @@ function initOrbs() {
   document.querySelectorAll('.orbs').forEach((r) => io.observe(r));
 }
 
-/* Testimonials: one quote at a time, loops on its own, pauses on hover, focus or the pause button. */
+/* Testimonials: one quote at a time, loops on its own, pauses on hover, focus or the pause button.
+   The timer is the current tab's progress bar, a CSS animation; when it ends, the next quote shows. */
 function initQuotes() {
-  const root = $('tq');
-  if (!root) return;
-  const slides = $$('.tq-slide', root), tabs = $$('.tq-tab', root), stage = $('tq-stage'), btn = $('tq-pause');
-  const DUR = 7000;
-  let i = 0, t0 = performance.now(), elapsed = 0, hover = false, keyed = false, paused = reduceMotion;
+  const root = $('tq'), slides = $$('.tq-slide', root), tabs = $$('.tq-tab', root), stage = $('tq-stage'), btn = $('tq-pause');
+  let i = 0, hover = false, keyed = false, paused = reduceMotion;
+  const hold = () => root.classList.toggle('hold', paused || hover || keyed);
   const show = (n, manual) => {
-    const back = manual === 'back';
-    root.classList.toggle('tq-back', back);
+    root.classList.toggle('tq-back', manual === 'back');
     slides[i].classList.remove('on'); slides[i].setAttribute('aria-hidden', 'true'); tabs[i].removeAttribute('aria-current');
-    tabs[i].style.setProperty('--p', '0');
     i = (n + slides.length) % slides.length;
     slides[i].classList.add('on'); slides[i].removeAttribute('aria-hidden'); tabs[i].setAttribute('aria-current', 'true');
-    elapsed = 0; t0 = performance.now();
+    const bar = tabs[i].firstElementChild; // restart its timer, also when the same tab is chosen again
+    bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = '';
     stage.setAttribute('aria-live', manual ? 'polite' : 'off');
   };
   const setPaused = (p) => {
-    paused = p;
+    paused = p; hold();
     btn.setAttribute('aria-label', p ? 'Play testimonials' : 'Pause testimonials');
     btn.innerHTML = p ? '<svg class="i" width="16" height="16" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg>' : '<svg class="i" width="16" height="16" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>';
   };
   setPaused(paused);
+  root.addEventListener('animationend', (e) => { if (e.animationName === 'tq-fill') show(i + 1, false); });
   $('tq-next').addEventListener('click', () => show(i + 1, true));
   $('tq-prev').addEventListener('click', () => show(i - 1, 'back'));
-  tabs.forEach((b) => b.addEventListener('click', () => { if (+b.dataset.i < i) root.classList.add('tq-back'); }, true));
+  tabs.forEach((b) => b.addEventListener('click', () => show(+b.dataset.i, +b.dataset.i < i ? 'back' : true)));
   root.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') show(i + 1, true); if (e.key === 'ArrowLeft') show(i - 1, 'back'); });
   let sx = null;
   stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') sx = e.clientX; });
   stage.addEventListener('pointerup', (e) => { if (sx === null) return; const d = e.clientX - sx; sx = null; if (Math.abs(d) > 40) (d < 0 ? show(i + 1, true) : show(i - 1, 'back')); });
   btn.addEventListener('click', () => setPaused(!paused));
-  tabs.forEach((b) => b.addEventListener('click', () => show(+b.dataset.i, +b.dataset.i < i ? 'back' : true)));
   // Reading the quote holds it; the controls never do, so a clicked slide starts its timer at once.
   // Keyboard focus also holds it (W3C carousel pattern); a mouse click's focus does not.
-  stage.addEventListener('pointerenter', () => { hover = true; });
-  stage.addEventListener('pointerleave', () => { hover = false; });
-  root.addEventListener('focusin', (e) => { keyed = e.target.matches(':focus-visible'); });
-  root.addEventListener('focusout', () => { keyed = false; });
-  (function tick(now) {
-    if (paused || hover || keyed) t0 = now - elapsed; else elapsed = now - t0;
-    const p = Math.min(1, elapsed / DUR);
-    tabs[i].style.setProperty('--p', p.toFixed(3));
-    if (p >= 1) show(i + 1, false);
-    requestAnimationFrame(tick);
-  })(performance.now());
+  stage.addEventListener('pointerenter', () => { hover = true; hold(); });
+  stage.addEventListener('pointerleave', () => { hover = false; hold(); });
+  root.addEventListener('focusin', (e) => { keyed = e.target.matches(':focus-visible'); hold(); });
+  root.addEventListener('focusout', () => { keyed = false; hold(); });
 }
 
 $('year').textContent = new Date().getFullYear();
