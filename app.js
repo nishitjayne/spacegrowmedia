@@ -1,6 +1,10 @@
 import Lenis from 'lenis';
 
 document.documentElement.classList.add('rv');
+// Low-end devices get a lighter page: no glass blur or blur-in reveals, flat brand balls, no 4k swaps, 1x 3D.
+// The scene also switches it on by itself if it can't keep a smooth frame rate.
+const lite = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
+document.documentElement.classList.toggle('lite', lite);
 
 const $ = (id) => document.getElementById(id);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -136,12 +140,18 @@ function finishIntro() {
     else { intro.classList.add('exit'); setTimeout(() => intro.remove(), 1150); }
   }
   universe?.hurryIntro();
-  document.querySelector('.intro-name:not(.dock)')?.remove(); // skipped before the name docked
+  document.querySelectorAll('.intro-name:not(.dock)').forEach((n) => n.remove()); // skipped before the name docked
   lenis?.start();
   bootScene();
   startReveals();
-  // After the glide: orb WebGL start-up and the 4k map swaps would otherwise stutter it.
-  setTimeout(() => { initOrbs(); bootScene().then((u) => u?.sharpen()); }, 3000);
+  // Once the page is still: orb WebGL start-up and the 4k swaps cost a few frames, which a scroll would show.
+  // Light mode skips both (plain balls, 2k maps).
+  bootScene().then(async (u) => {
+    if (u) await u.whenStill();
+    if (document.documentElement.classList.contains('lite')) return; // set at start or by the scene if it ran slow
+    initOrbs();
+    u?.sharpen();
+  });
 }
 
 function runIntro() {
@@ -167,37 +177,45 @@ function runIntro() {
   });
 }
 
-// The brand name above where the horizon will be: a copy of the nav wordmark, so it can land on it exactly.
+// The brand name above where the horizon will be, as two copies of the nav wordmark (light and bold).
+// They move as one; the weight change is a cross-fade on the GPU, because animating font-weight
+// re-lays out the text every frame and made the move stutter.
 function showName() {
   if (introDone) return null;
   const word = document.querySelector('.nav .brand-word'), r = word.getBoundingClientRect(); // measured in its real font
-  const name = word.cloneNode(true);
-  name.classList.add('intro-name');
-  Object.assign(name.style, { left: `${r.left}px`, top: `${r.top}px` });
-  document.body.append(name); // outside #intro, so the intro's fade never touches it
-  // Heading weight with MEDIA centred first; both ease into the nav's own lockup while docking.
-  const small = name.querySelector('small'), w = name.offsetWidth, h = name.offsetHeight;
-  small.style.transform = `translateX(${(w - small.offsetWidth + parseFloat(getComputedStyle(small).letterSpacing)) / 2}px)`;
-  const k = Math.min(3.2, (innerWidth * 0.7) / w);
-  name.style.transform = `translate(${innerWidth / 2 - r.left - w / 2}px, ${innerHeight * 0.36 - r.top - h / 2}px) scale(${k})`;
-  requestAnimationFrame(() => name.classList.add('on'));
-  return { name, small, word };
+  const copy = (weight) => {
+    const n = word.cloneNode(true);
+    n.classList.add('intro-name', weight);
+    Object.assign(n.style, { left: `${r.left}px`, top: `${r.top}px` });
+    document.body.append(n); // outside #intro, so the intro's fade never touches it
+    return n;
+  };
+  const light = copy('light'), bold = copy('bold');
+  const k = Math.min(3.2, (innerWidth * 0.7) / light.offsetWidth);
+  for (const n of [light, bold]) { // each centred by its own width, MEDIA centred under it
+    const small = n.querySelector('small'), w = n.offsetWidth, h = n.offsetHeight;
+    small.style.transform = `translateX(${(w - small.offsetWidth + parseFloat(getComputedStyle(small).letterSpacing)) / 2}px)`;
+    n.style.transform = `translate(${innerWidth / 2 - r.left - w / 2}px, ${innerHeight * 0.36 - r.top - h / 2}px) scale(${k})`;
+  }
+  requestAnimationFrame(() => light.classList.add('on'));
+  return { light, bold, word };
 }
 
 // The Sun clears Earth's limb beneath the name, then the name settles onto the nav's own wordmark.
-function launch({ name, small, word }, u) {
+function launch({ light, bold, word }, u) {
   const DOCK = u ? 4.4 : 0.8;
   if (u) { u.sunrise(0, -0.24, DOCK, 2.6); $('intro').classList.add('sky'); }
   setTimeout(() => {
     if (introDone) return;
-    name.classList.add('dock');
-    name.style.transform = small.style.transform = 'none';
+    for (const n of [light, bold]) { n.classList.add('dock'); n.style.transform = n.querySelector('small').style.transform = 'none'; }
+    bold.classList.add('on'); // the bold copy fades in while moving, then the light one fades out
+    light.classList.remove('on');
     setTimeout(() => {
       // One object end to end: the name covers the hidden nav wordmark until the page has faded in,
       // then the two swap in the same frame.
       word.style.visibility = 'hidden';
       finishIntro();
-      setTimeout(() => { word.style.visibility = ''; name.remove(); }, 1400);
+      setTimeout(() => { word.style.visibility = ''; light.remove(); bold.remove(); }, 1400);
     }, 900);
   }, DOCK * 1000);
 }

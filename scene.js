@@ -206,7 +206,7 @@ varying vec3 vP; varying vec3 vN; varying vec3 vV;
   fragmentShader: `
 #include <logdepthbuf_pars_fragment>
 ${NOISE}
-    uniform float uTime; varying vec3 vP; varying vec3 vN; varying vec3 vV;
+    uniform float uTime; uniform float uFade; varying vec3 vP; varying vec3 vN; varying vec3 vV;
     void main(){
       vec3 p = normalize(vP);
       float t = uTime;
@@ -222,7 +222,7 @@ ${NOISE}
       col += vec3(0.8, 0.3, 0.08) * pow(1.0 - mu, 3.0);
       
 #include <logdepthbuf_fragment>
-      gl_FragColor = vec4(col, 1.0);
+      gl_FragColor = vec4(col, uFade);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
     }`,
@@ -314,6 +314,27 @@ varying vec2 vUv; varying vec3 vW; void main(){ vUv = uv; vec4 w = modelMatrix *
 };
 
 /* ───────── helpers ───────── */
+// A camera's view of the Sun: a hot white core, a short bloom and thin diffraction spikes (6 long, 6 faint).
+function starburstTexture(size = 512) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const g = c.getContext('2d'), h = size / 2;
+  const core = g.createRadialGradient(h, h, 0, h, h, h * 0.22);
+  [[0, 'rgba(255,255,255,1)'], [0.25, 'rgba(255,252,240,0.9)'], [0.6, 'rgba(255,236,200,0.25)'], [1, 'rgba(255,220,170,0)']].forEach(([o, col]) => core.addColorStop(o, col));
+  g.fillStyle = core; g.fillRect(0, 0, size, size);
+  g.translate(h, h); g.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 12; i++) {
+    const long = i % 2 === 0, len = h * (long ? 0.98 : 0.55), w = long ? 2.2 : 1.2;
+    const sp = g.createLinearGradient(0, 0, len, 0);
+    sp.addColorStop(0, 'rgba(255,250,235,' + (long ? 0.9 : 0.45) + ')'); sp.addColorStop(1, 'rgba(255,240,210,0)');
+    g.save(); g.rotate((i / 12) * Math.PI * 2 + 0.26); g.fillStyle = sp;
+    g.beginPath(); g.moveTo(0, -w); g.lineTo(len, 0); g.lineTo(0, w); g.closePath(); g.fill(); g.restore();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
 function glowTexture(stops, size = 256) {
   const c = document.createElement('canvas');
   c.width = c.height = size;
@@ -411,7 +432,8 @@ class Universe {
     this.days = (Date.now() - Date.UTC(2000, 0, 1, 12)) / 864e5;
 
     const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', logarithmicDepthBuffer: true });
-    r.setPixelRatio(Math.min(window.devicePixelRatio, this.isMobile ? 1.5 : 2));
+    this.lite = document.documentElement.classList.contains('lite'); // low-end device: draw at 1x
+    r.setPixelRatio(Math.min(window.devicePixelRatio, this.lite ? 1 : this.isMobile ? 1.5 : 2));
     r.setSize(window.innerWidth, window.innerHeight, false);
     r.toneMapping = THREE.ACESFilmicToneMapping;
     this.maxAniso = r.capabilities.getMaxAnisotropy();
@@ -433,7 +455,10 @@ class Universe {
     this.ready = Promise.all([this.buildEarth(), ...PLANETS.map((p) => this.buildPlanet(p))]).then(() => {
       this.buildPath();
       this.measure();
-      return r.compileAsync(this.scene, this.camera); // ready only once every shader has finished compiling, so no first-frame stall
+      // Compile every program now, hidden bodies included (the site view hides most of them), so nothing
+      // compiles on first sight: not the Sun at sunrise, not a planet the first time you scroll to it.
+      const hidden = []; this.scene.traverse((o) => { if (!o.visible) { hidden.push(o); o.visible = true; } });
+      return r.compileAsync(this.scene, this.camera).finally(() => hidden.forEach((o) => { o.visible = false; }));
     });
     this.buildWarp();
     this.vel = 0;
@@ -467,13 +492,30 @@ class Universe {
       const t = await this.tex(url, color, false), old = slot[key];
       if (!t) continue;
       t.wrapS = old.wrapS;
-      // Upload only when the browser is idle, so the swap never lands mid-scroll or mid-animation.
-      await new Promise((ok) => (window.requestIdleCallback ? requestIdleCallback(ok, { timeout: 4000 }) : setTimeout(ok, 200)));
+      // Upload only while the view is still and the browser idle: a 4k upload costs a few frames,
+      // invisible on a still screen, a stutter during a scroll or a flight.
+      await this.whenStill();
       this.renderer.initTexture(t);
       slot[key] = t;
       if (slot.bumpMap === old) slot.bumpMap = t;
       old.dispose();
     }
+  }
+
+  goLite() {
+    this.lite = true;
+    this.renderer.setPixelRatio(1);
+    this.sharp = [];
+    document.documentElement.classList.add('lite');
+  }
+
+  // Resolves once nothing has moved for a moment (no scroll, flight or intro) and the browser is idle.
+  whenStill() {
+    return new Promise((ok) => {
+      const check = () => (!this.intro && !this.flight && performance.now() - (this.lastMotion || 0) > 900
+        ? (window.requestIdleCallback ? requestIdleCallback(ok, { timeout: 1000 }) : ok()) : setTimeout(check, 300));
+      check();
+    });
   }
 
   res(name) { return `/textures/ss/${name}-${this.isMobile ? '1k' : '2k'}.webp`; }
@@ -517,7 +559,7 @@ class Universe {
 
   buildSun() {
     this.sun = new THREE.Group();
-    this.sunMat = new THREE.ShaderMaterial({ ...SUN, uniforms: { uTime: { value: 0 } } });
+    this.sunMat = new THREE.ShaderMaterial({ ...SUN, transparent: true, uniforms: { uTime: { value: 0 }, uFade: { value: 1 } } });
     const body = new THREE.Mesh(new THREE.SphereGeometry(SUN_R, this.isMobile ? 64 : 128, this.isMobile ? 32 : 64), this.sunMat);
     this.coronaMat = new THREE.ShaderMaterial({ ...CORONA, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: { uTime: { value: 0 }, uR: { value: 1 / 3.2 }, uFade: { value: 1 }, uProm: { value: 1 } } });
     this.corona = new THREE.Mesh(new THREE.PlaneGeometry(SUN_R * 6.4, SUN_R * 6.4), this.coronaMat);
@@ -526,7 +568,12 @@ class Universe {
       blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, color: new THREE.Color(0.32, 0.24, 0.18),
     }));
     halo.scale.setScalar(SUN_R * 4.2);
-    this.sun.add(body, this.corona, halo);
+    this.halo = halo;
+    // Intro only: how a camera in orbit sees the Sun, a white point with thin diffraction spikes.
+    this.burst = new THREE.Sprite(new THREE.SpriteMaterial({ map: starburstTexture(), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0, sizeAttenuation: false }));
+    this.burst.scale.setScalar(0.42);
+    this.burst.visible = false;
+    this.sun.add(body, this.corona, halo, this.burst);
     this.scene.add(this.sun);
     this.named(body, 'Sun', SUN_R);
     body.userData.root = this.sun;
@@ -735,15 +782,23 @@ class Universe {
     // Real time of day: if India is in darkness, swing toward the Sun so India sits on the sunrise line.
     const toSun = this.earth.position.clone().negate().normalize();
     const lit = mumbaiDir.dot(toSun);
-    let heroDir = mumbaiDir.clone().addScaledVector(toSun, THREE.MathUtils.clamp(0.75 - lit, 0, 1.5)).normalize();
-    // At Indian night that sum would swing past the sunrise line to the far side; cap it so Mumbai always faces us.
-    const MAX_SWING = THREE.MathUtils.degToRad(55);
-    if (mumbaiDir.angleTo(heroDir) > MAX_SWING) {
-      const axis = new THREE.Vector3().crossVectors(mumbaiDir, toSun);
-      if (axis.lengthSq() < 1e-8) axis.crossVectors(mumbaiDir, UP); // Sun exactly opposite: any swing axis will do
-      heroDir = mumbaiDir.clone().applyAxisAngle(axis.normalize(), MAX_SWING);
+    // Swing toward the Sun by up to 55°, but only as far as keeps Mumbai comfortably in frame: the hero sets
+    // Earth partly off the right edge, so a large swing can push the pin out of view (Indian evenings).
+    const axis = new THREE.Vector3().crossVectors(mumbaiDir, toSun);
+    if (axis.lengthSq() < 1e-8) axis.crossVectors(mumbaiDir, UP); // Sun exactly opposite: any swing axis will do
+    axis.normalize();
+    const pin = mumbaiDir.clone().multiplyScalar(EARTH_R).add(this.earth.position);
+    const probe = new THREE.PerspectiveCamera(this.camera.fov, this.camera.aspect, 0.5, 60000);
+    const dirFor = (ang) => mumbaiDir.clone().applyAxisAngle(axis, ang).addScaledVector(UP, 0.12).normalize();
+    let ang = Math.min(mumbaiDir.angleTo(mumbaiDir.clone().addScaledVector(toSun, THREE.MathUtils.clamp(0.75 - lit, 0, 1.5))), THREE.MathUtils.degToRad(55));
+    for (let i = 0; i < 8 && ang > 0.01; i++) {
+      const [pos, look] = stop(this.earthBody, EARTH_R, dirFor(ang));
+      probe.position.copy(pos); probe.lookAt(look); probe.updateMatrixWorld();
+      const sp = pin.clone().project(probe), facing = mumbaiDir.dot(pos.clone().sub(pin).normalize());
+      if (Math.abs(sp.x) < 0.78 && Math.abs(sp.y) < 0.8 && facing > 0.3) break;
+      ang *= 0.7;
     }
-    heroDir.addScaledVector(UP, 0.12).normalize();
+    const heroDir = dirFor(ang);
     const keys = [
       stop(this.earthBody, EARTH_R, heroDir),
       stop(this.moon, 2.73 * 1.6),
@@ -797,6 +852,12 @@ class Universe {
 
   frame() {
     const dt = Math.min(this.clock.getDelta(), 0.05);
+    // Once, after the intro: a device that can't hold about 36 fps switches to light mode (1x, no page blur, no 4k).
+    if (!this.lite && !this.perfDone && this.posCurve && !this.intro && !REDUCED) {
+      const pf = (this.perf ||= { n: 0, sum: 0 });
+      if (++pf.n > 30) pf.sum += dt; // skip the first frames after the handoff
+      if (pf.n === 150) { this.perfDone = true; if (pf.sum / 120 > 0.028) this.goLite(); }
+    }
     if (!REDUCED) this.time += dt;
     const k = (rate) => 1 - Math.exp(-rate * dt);
     const cam = this.camera;
@@ -830,6 +891,7 @@ class Universe {
       cam.rotateX(this.view.pitch);
     }
 
+    if (Math.abs(this.vel) > 5 || travelSpeed > 5) this.lastMotion = performance.now();
     // Warp follows how fast the camera actually moves, so long trips streak and short ones don't.
     const speed = Math.max(travelSpeed * 6, jumpK * 7000);
     if (!REDUCED) this.updateWarp(dt, this.explore ? speed : Math.sign(this.vel || 1) * speed); else this.warp.visible = false;
@@ -888,7 +950,9 @@ class Universe {
     this.intro = { start: performance.now(), sx, sy, glideAt, glideFor, q: new THREE.Quaternion(), q1: new THREE.Quaternion() };
     this.sun.scale.setScalar(0.035); // close to the real ~0.5° Sun seen from near Earth
     this.coronaMat.uniforms.uProm.value = 0; // prominence loops are lost at this size
-    this.labelRoot.style.visibility = 'hidden';
+    this.halo.visible = false; // its soft orange glow made the small Sun read as a light bulb
+    this.burst.visible = true;
+    this.labelRoot.style.opacity = '0';
   }
 
   // Skipped: start the glide down to the hero now, and make it quick.
@@ -918,7 +982,13 @@ class Universe {
     it.q.setFromRotationMatrix(this.lookM)
       .multiply(it.q1.setFromUnitVectors(new THREE.Vector3(it.sx * th * cam.aspect, it.sy * th, -1).normalize(), new THREE.Vector3(0, 0, -1)))
       .multiply(it.q1.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.12 - 0.08 * k));
+    // Spikes only once the Sun's disc clears the limb (its angular radius here is about 0.01 rad).
+    const above = THREE.MathUtils.smoothstep(e + Math.acos(R / D), -0.012, 0.012);
     const g = ease((t - it.glideAt) / it.glideFor);
+    const fade = 1 - THREE.MathUtils.smoothstep(g, 0.45, 0.85); // the Sun leaves gently during the glide, never pops at the end
+    this.burst.material.opacity = above * fade;
+    this.sunMat.uniforms.uFade.value = fade;
+    this.coronaMat.uniforms.uFade.value = 0.5 * fade;
     if (g <= 0) { cam.position.copy(start); cam.quaternion.copy(it.q); return; }
     // Glide round Earth (never through it) to the hero pose, easing distance in log space.
     const hero = this.posCurve.getPoint(0), heroLook = this.lookCurve.getPoint(0);
@@ -936,7 +1006,10 @@ class Universe {
       this.view.yaw = this.view.pitch = 0;
       this.sun.scale.setScalar(1);
       this.coronaMat.uniforms.uProm.value = 1;
-      this.labelRoot.style.visibility = '';
+      this.sunMat.uniforms.uFade.value = this.coronaMat.uniforms.uFade.value = 1;
+      this.halo.visible = true;
+      this.burst.visible = false;
+      this.labelRoot.style.opacity = '';
     }
   }
 
@@ -1131,12 +1204,12 @@ class Universe {
     const order = this.labels.filter((L) => L.want).sort((a, c) => (c.pin - a.pin) || ((c.home ? 1 : 0) - (a.home ? 1 : 0)) || (a.depth - c.depth));
     for (const L of this.labels) if (!L.want && L.on) { L.on = false; L.el.classList.remove('on'); }
     for (const L of order) {
-      L.w ||= L.el.offsetWidth || 110;
+      L.w ||= Math.round(L.el.textContent.length * 7.4) + 34; // estimated: reading layout here forced a full-page reflow
       const box = [L.x + 6, L.y - 18, L.x + 18 + L.w, L.y + 18];
       const clash = placed.some((q) => box[0] < q[2] && box[2] > q[0] && box[1] < q[3] && box[3] > q[1]);
       if (clash) { if (L.on) { L.on = false; L.el.classList.remove('on'); } continue; }
       placed.push(box);
-      if (!L.on) { L.on = true; L.el.classList.add('on'); L.w = L.el.offsetWidth || L.w; }
+      if (!L.on) { L.on = true; L.el.classList.add('on'); }
       L.el.style.transform = `translate3d(${L.x.toFixed(1)}px, ${L.y.toFixed(1)}px, 0)`;
     }
   }
