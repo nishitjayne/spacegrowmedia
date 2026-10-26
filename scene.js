@@ -986,7 +986,8 @@ class Universe {
     // The camera climbs (2001's rising reveal) and drifts sideways with a slight roll (Gravity's long take).
     const toSun = E.clone().negate().normalize();
     const up = UP.clone().addScaledVector(toSun, -UP.dot(toSun)).normalize();
-    const k = ease(t / 3.4);
+    // The climb eases in, then keeps a steady pace (never stops) until the glide takes over: one continuous move.
+    const k = t < 1.7 ? ease(t / 3.4) : 0.5 + (t - 1.7) * 0.55;
     const D = R * (1.22 + 0.08 * k);
     const e = 0.07 - Math.acos(R / D) + 0.12 * (k - 1); // Sun elevation above the local horizon: just below, then just above
     const radial = up.clone().multiplyScalar(Math.cos(e)).addScaledVector(toSun, Math.sin(e));

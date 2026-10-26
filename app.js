@@ -174,11 +174,11 @@ function runIntro() {
   // Behind the name, the page is drawn once at 0.1% opacity with its hero already in place, so the GPU
   // rasterises it now, not in the frame the page fades in (that froze the motion as the intro ended).
   name.then(() => { $('site').classList.add('warm'); startReveals(); });
-  const scene =name.then(afterPaint).then(bootScene); // the name paints first, then Earth starts loading
+  const scene = name.then(afterPaint).then(bootScene); // the name paints first, then Earth starts loading
   const load = $('intro-load');
   const onLoad = (e) => load.style.setProperty('--p', e.detail.toFixed(3));
   addEventListener('sg-load', onLoad);
-  const shown = setTimeout(() => load.classList.add('on'), 400);
+  const shown = setTimeout(() => load.classList.add('on'), 1500); // only on a slow load; a quick flash reads as a stall
   Promise.race([scene, new Promise((r) => setTimeout(r, 9000))]).then(async (u) => {
     clearTimeout(shown);
     removeEventListener('sg-load', onLoad);
@@ -205,9 +205,13 @@ function showName() {
 }
 
 // The Sun clears Earth's limb beneath the name, then the name settles onto the nav's own wordmark.
+// The camera's climb runs straight into its glide, and the name pushes in slowly until it docks, so nothing
+// on screen ever stops between the first frame and the page.
 function launch({ name, word }, u) {
-  const DOCK = u ? 4.4 : 0.8;
-  if (u) { u.sunrise(0, -0.24, DOCK, 2.6); $('intro').classList.add('sky'); }
+  const DOCK = u ? 3 : 0.8;
+  if (u) { u.sunrise(0, -0.24, DOCK, 3.2); $('intro').classList.add('sky'); }
+  name.classList.add('drift');
+  name.style.transform += ' scale(1.04)';
   setTimeout(() => {
     if (introDone) return;
     name.classList.add('dock');
