@@ -89,14 +89,21 @@ function countUp(node) {
   requestAnimationFrame(tick);
 }
 
-function startReveals() {
+// Runs fn once for each element matching sel, when it comes into view.
+function whenSeen(sel, fn) {
   const io = new IntersectionObserver((entries) => entries.forEach((e) => {
     if (!e.isIntersecting) return;
-    e.target.classList.add('in');
-    $$('[data-count]', e.target).forEach(countUp);
     io.unobserve(e.target);
+    fn(e.target);
   }), { threshold: 0.15, rootMargin: '0px 0px -6% 0px' });
-  $$('.reveal, [data-split]').forEach((el) => io.observe(el));
+  $$(sel).forEach((el) => io.observe(el));
+}
+
+let revealing = false;
+function startReveals() {
+  if (revealing) return; // the intro starts them early, behind the name
+  revealing = true;
+  whenSeen('.reveal, [data-split]', (el) => el.classList.add('in'));
 
   const timeline = $('timeline');
   const steps = $$('.step', timeline);
@@ -140,17 +147,18 @@ function finishIntro() {
     else { intro.classList.add('exit'); setTimeout(() => intro.remove(), 1150); }
   }
   universe?.hurryIntro();
-  document.querySelectorAll('.intro-name:not(.dock)').forEach((n) => n.remove()); // skipped before the name docked
+  document.querySelector('.intro-name:not(.dock)')?.remove(); // skipped before the name docked
   lenis?.start();
   bootScene();
   startReveals();
-  // Once the page is still: orb WebGL start-up and the 4k swaps cost a few frames, which a scroll would show.
+  whenSeen('[data-count]', countUp); // only now the page shows, so the count-up is seen
+  // Once the page is still: building the spheres and the 4k swaps cost a few frames, which a scroll would show.
   // Light mode skips both (plain balls, 2k maps).
   bootScene().then(async (u) => {
     if (u) await u.whenStill();
-    if (document.documentElement.classList.contains('lite')) return; // set at start or by the scene if it ran slow
+    if (!u || document.documentElement.classList.contains('lite')) return; // no 3D, or light mode: the CSS balls stay
     initOrbs();
-    u?.sharpen();
+    u.sharpen();
   });
 }
 
@@ -163,7 +171,10 @@ function runIntro() {
   // The name is up as soon as its font is (self-hosted and preloaded), with a quiet "prepare for takeoff"
   // line and real texture progress beneath it while Earth loads.
   const name = document.fonts.ready.then(showName);
-  const scene = name.then(afterPaint).then(bootScene); // the name paints first, then Earth starts loading
+  // Behind the name, the page is drawn once at 0.1% opacity with its hero already in place, so the GPU
+  // rasterises it now, not in the frame the page fades in (that froze the motion as the intro ended).
+  name.then(() => { $('site').classList.add('warm'); startReveals(); });
+  const scene =name.then(afterPaint).then(bootScene); // the name paints first, then Earth starts loading
   const load = $('intro-load');
   const onLoad = (e) => load.style.setProperty('--p', e.detail.toFixed(3));
   addEventListener('sg-load', onLoad);
@@ -177,45 +188,36 @@ function runIntro() {
   });
 }
 
-// The brand name above where the horizon will be, as two copies of the nav wordmark (light and bold).
-// They move as one; the weight change is a cross-fade on the GPU, because animating font-weight
-// re-lays out the text every frame and made the move stutter.
+// The brand name above where the horizon will be: a copy of the nav wordmark, same font and weight,
+// so the text itself never changes on the way to the nav; only its position and size animate.
 function showName() {
   if (introDone) return null;
   const word = document.querySelector('.nav .brand-word'), r = word.getBoundingClientRect(); // measured in its real font
-  const copy = (weight) => {
-    const n = word.cloneNode(true);
-    n.classList.add('intro-name', weight);
-    Object.assign(n.style, { left: `${r.left}px`, top: `${r.top}px` });
-    document.body.append(n); // outside #intro, so the intro's fade never touches it
-    return n;
-  };
-  const light = copy('light'), bold = copy('bold');
-  const k = Math.min(3.2, (innerWidth * 0.7) / light.offsetWidth);
-  for (const n of [light, bold]) { // each centred by its own width, MEDIA centred under it
-    const small = n.querySelector('small'), w = n.offsetWidth, h = n.offsetHeight;
-    small.style.transform = `translateX(${(w - small.offsetWidth + parseFloat(getComputedStyle(small).letterSpacing)) / 2}px)`;
-    n.style.transform = `translate(${innerWidth / 2 - r.left - w / 2}px, ${innerHeight * 0.36 - r.top - h / 2}px) scale(${k})`;
-  }
-  requestAnimationFrame(() => light.classList.add('on'));
-  return { light, bold, word };
+  const name = word.cloneNode(true), small = name.querySelector('small');
+  name.classList.add('intro-name');
+  Object.assign(name.style, { left: `${r.left}px`, top: `${r.top}px` });
+  document.body.append(name); // outside #intro, so the intro's fade never touches it
+  const w = name.offsetWidth, h = name.offsetHeight, k = Math.min(3.2, (innerWidth * 0.7) / w);
+  small.style.transform = `translateX(${(w - small.offsetWidth + parseFloat(getComputedStyle(small).letterSpacing)) / 2}px)`; // MEDIA centred under it
+  name.style.transform = `translate(${innerWidth / 2 - r.left - w / 2}px, ${innerHeight * 0.36 - r.top - h / 2}px) scale(${k})`;
+  requestAnimationFrame(() => name.classList.add('on'));
+  return { name, word };
 }
 
 // The Sun clears Earth's limb beneath the name, then the name settles onto the nav's own wordmark.
-function launch({ light, bold, word }, u) {
+function launch({ name, word }, u) {
   const DOCK = u ? 4.4 : 0.8;
   if (u) { u.sunrise(0, -0.24, DOCK, 2.6); $('intro').classList.add('sky'); }
   setTimeout(() => {
     if (introDone) return;
-    for (const n of [light, bold]) { n.classList.add('dock'); n.style.transform = n.querySelector('small').style.transform = 'none'; }
-    bold.classList.add('on'); // the bold copy fades in while moving, then the light one fades out
-    light.classList.remove('on');
+    name.classList.add('dock');
+    name.style.transform = name.querySelector('small').style.transform = 'none';
     setTimeout(() => {
       // One object end to end: the name covers the hidden nav wordmark until the page has faded in,
       // then the two swap in the same frame.
       word.style.visibility = 'hidden';
       finishIntro();
-      setTimeout(() => { word.style.visibility = ''; light.remove(); bold.remove(); }, 1400);
+      setTimeout(() => { word.style.visibility = ''; name.remove(); }, 1400);
     }, 900);
   }, DOCK * 1000);
 }
@@ -547,17 +549,17 @@ function initExplore() {
   window.addEventListener('blur', () => { if (universe) universe.keys = {}; });
 }
 
-/* Testimonials: one quote at a time, loops on its own, pauses on hover, focus or the pause button. */
-// Orb groups (clients, socials) load their WebGL only when close.
+// Orb groups (clients, socials) build their spheres only when close.
 function initOrbs() {
   const io = new IntersectionObserver((es) => es.forEach((e) => {
     if (!e.isIntersecting) return;
     io.unobserve(e.target);
-    import('./socials.js').then((m) => m.initOrbs(e.target)).catch((err) => console.warn('Orbs failed:', err));
+    import('./socials.js').then((m) => m.initOrbs(e.target, universe)).catch((err) => console.warn('Orbs failed:', err));
   }), { rootMargin: '600px 0px' });
   document.querySelectorAll('.orbs').forEach((r) => io.observe(r));
 }
 
+/* Testimonials: one quote at a time, loops on its own, pauses on hover, focus or the pause button. */
 function initQuotes() {
   const root = $('tq');
   if (!root) return;

@@ -131,7 +131,8 @@ em, .serif { font-family: var(--f-serif); font-style: italic; font-weight: 400; 
 .ticks li::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--grad); transform: translateY(-2px); }
 
 /* ───────── Intro ───────── */
-#intro { position: fixed; inset: 0; z-index: 1000; background: #03040a; transition: background-color 1.4s var(--ease); }
+/* Not quite opaque: a fully opaque cover makes the browser put off rasterising the page under it until the sunrise. */
+#intro { position: fixed; inset: 0; z-index: 1000; background: rgba(3, 4, 10, 0.995); transition: background-color 1.4s var(--ease); }
 #intro.sky { background: transparent; }
 .intro-load { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; justify-items: center; gap: 1.1rem; opacity: 0; pointer-events: none; transition: opacity 0.5s var(--ease); }
 .intro-load.on { opacity: 1; }
@@ -140,15 +141,14 @@ em, .serif { font-family: var(--f-serif); font-style: italic; font-weight: 400; 
 /* Intro name: only transform and opacity animate, on its own GPU layer, so it stays smooth while the 3D loads. */
 .intro-name { position: fixed; z-index: 1001; opacity: 0; will-change: transform, opacity; transition: opacity 1.2s var(--ease); }
 .intro-name.on { opacity: 1; }
-.brand-word.intro-name.light { font-weight: 400; text-shadow: 0 0 24px rgba(94, 231, 255, 0.3); }
 .intro-name small { width: max-content; }
-.intro-name.dock, .intro-name.dock small { transition: transform 1.3s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.7s var(--ease); }
-.intro-name.light.dock { transition: transform 1.3s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.7s var(--ease) 0.35s; } /* fades after the bold copy is in */
+.intro-name.dock, .intro-name.dock small { transition: transform 1.3s cubic-bezier(0.65, 0, 0.35, 1); }
 .intro-skip { position: absolute; right: var(--gut); bottom: 30px; z-index: 4; min-height: 44px; padding: 0 1.2rem; border-radius: 999px; border: 1px solid var(--line-2); color: var(--muted); font: 500 0.75rem var(--f-mono); letter-spacing: 0.14em; text-transform: uppercase; transition: color 0.3s, border-color 0.3s; }
 #intro.exit { animation: intro-fade 0.9s var(--ease) forwards; }
 @keyframes intro-fade { to { opacity: 0; visibility: hidden; } }
 
 .js #site { opacity: 0; transition: opacity 1.2s var(--ease); }
+.js #site.warm:not(.visible) { opacity: 0.001; transition: none; } /* drawn but unseen during the intro; see runIntro */
 #site.visible { opacity: 1; }
 
 /* ───────── Nav ───────── */
@@ -631,7 +631,6 @@ section { padding-block: clamp(4rem, 8vw, 6.5rem); }
 
 /* Social planets: a glossy ball per network (WebGL paints over the CSS ball once ready). */
 .orbs { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1rem, 3vw, 2.5rem); max-width: 860px; margin-inline: auto; padding-block: 1rem; }
-.orbs-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
 .orb { position: relative; z-index: 1; display: grid; justify-items: center; gap: 0.9rem; padding: 1.2rem 0.5rem; border-radius: 24px; text-align: center; min-width: 0; -webkit-tap-highlight-color: transparent; transition: background-color 0.3s var(--ease); }
 .orb-ball { --c: #0a66c2; display: grid; place-items: center; width: clamp(110px, 13vw, 160px); aspect-ratio: 1; border-radius: 50%; margin-bottom: 0.4rem; color: #fff; background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.55), transparent 22%), radial-gradient(circle at 70% 80%, rgba(0, 0, 0, 0.45), transparent 60%), var(--c); box-shadow: inset -10px -14px 30px rgba(0, 0, 0, 0.35), 0 24px 40px -22px var(--c); transition: transform 0.5s var(--expo); }
 .orb-ball svg { width: 38%; height: 38%; }

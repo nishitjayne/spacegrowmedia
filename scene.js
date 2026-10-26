@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 /*
   SpaceGrow scene: the whole solar system.
@@ -422,6 +423,7 @@ class Universe {
     this.jump = null;
     this.sharp = []; // [slot, key, 4k url, colour?] swapped in by sharpen() after the intro
     this.intro = null;
+    this.overlays = []; // page elements drawn with this renderer (the brand and social spheres)
     this.ray = new THREE.Raycaster();
     this.lookM = new THREE.Matrix4();
     this.tmpQ = new THREE.Quaternion();
@@ -452,13 +454,16 @@ class Universe {
     this.scene.add(new THREE.PointLight(0xfff4e8, 3.4, 0, 0), new THREE.AmbientLight(0x8899ff, 0.04));
     this.buildSun();
     this.buildBelt();
-    this.ready = Promise.all([this.buildEarth(), ...PLANETS.map((p) => this.buildPlanet(p))]).then(() => {
+    // The page's glossy spheres reflect a soft studio room. It is baked now, in its own task while the
+    // textures download, because baking it after the intro froze a frame just as people start to scroll.
+    if (!this.lite) setTimeout(() => { const pm = new THREE.PMREMGenerator(r); this.env = pm.fromScene(new RoomEnvironment(), 0.04).texture; pm.dispose(); });
+    this.ready =Promise.all([this.buildEarth(), ...PLANETS.map((p) => this.buildPlanet(p))]).then(() => {
       this.buildPath();
       this.measure();
       // Compile every program now, hidden bodies included (the site view hides most of them), so nothing
       // compiles on first sight: not the Sun at sunrise, not a planet the first time you scroll to it.
       const hidden = []; this.scene.traverse((o) => { if (!o.visible) { hidden.push(o); o.visible = true; } });
-      return r.compileAsync(this.scene, this.camera).finally(() => hidden.forEach((o) => { o.visible = false; }));
+      return r.compileAsync(this.scene, this.camera).finally(() => { hidden.forEach((o) => { o.visible = false; }); this.live = true; });
     });
     this.buildWarp();
     this.vel = 0;
@@ -852,6 +857,9 @@ class Universe {
 
   frame() {
     const dt = Math.min(this.clock.getDelta(), 0.05);
+    // Nothing is drawn until every shader has compiled in the background: drawing earlier compiles
+    // them one by one on the main thread, a half-second freeze. The canvas is hidden until then anyway.
+    if (!this.live) return;
     // Once, after the intro: a device that can't hold about 36 fps switches to light mode (1x, no page blur, no 4k).
     if (!this.lite && !this.perfDone && this.posCurve && !this.intro && !REDUCED) {
       const pf = (this.perf ||= { n: 0, sum: 0 });
@@ -942,6 +950,13 @@ class Universe {
     }
     this.updateLabels();
     this.renderer.render(this.scene, cam);
+    // The page's spheres share this renderer and canvas: no extra WebGL contexts or render loops.
+    if (this.overlays.length && !this.explore) {
+      const r = this.renderer;
+      r.autoClear = false;
+      for (const o of this.overlays) if (o.draw()) { r.clearDepth(); r.render(o.scene, o.camera); }
+      r.autoClear = true;
+    }
   }
 
   /* ───────── intro: sunrise over Earth's limb, then a glide down to the hero view ───────── */
@@ -1226,6 +1241,7 @@ class Universe {
       });
     });
     this.scene.background?.dispose?.();
+    this.env?.dispose();
     this.renderer.dispose();
   }
 }

@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 /*
   Social planets and client orbs: one glossy sphere per link, drawn over the link's ball slot.
-  The links stay real <a> elements; this canvas only paints. The logo is kept facing the viewer,
-  so each ball reads as its network or brand at a glance.
+  The links stay real <a> elements; the spheres are painted by the 3D scene's own renderer as an extra pass
+  on the background canvas (a second WebGL context cost ~200 ms to create and a render loop of its own).
+  The logo is kept facing the viewer, so each ball reads as its network or brand at a glance.
 */
 
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -72,23 +72,17 @@ async function decal(src) {
   return canvasTexture(c);
 }
 
-export async function initOrbs(root) {
-  const canvas = root.querySelector('.orbs-canvas');
-  let renderer;
-  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); } catch { return; }
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+export async function initOrbs(root, universe) {
+  const renderer = universe.renderer;
   const scene = new THREE.Scene();
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  pmrem.dispose();
+  scene.environment = universe.env; // the studio-room reflections, baked by the scene while it loaded
   const key = new THREE.DirectionalLight(0xffffff, 1.4);
   key.position.set(-1, 1.3, 1.6);
   const rim = new THREE.DirectionalLight(0x6fb8ff, 1.6); // a cool edge light, like the Sun-side of the scene
   rim.position.set(1.4, -0.3, -1);
   scene.add(key, rim);
-  // Pixel units with y pointing down the page, so balls sit exactly on their slots.
-  const cam = new THREE.OrthographicCamera(0, 1, 0, -1, -1000, 1000);
+  // Viewport pixels with y pointing down the page, so balls sit exactly on their slots.
+  const camera = new THREE.OrthographicCamera(0, 1, 0, -1, -1000, 1000);
   const geo = new THREE.SphereGeometry(1, 96, 64);
 
   const links = [...root.querySelectorAll('.orb')];
@@ -110,25 +104,19 @@ export async function initOrbs(root) {
     });
     return o;
   });
+  await renderer.compileAsync(scene, camera); // in the background, not on the first frame the section appears
 
-  let w = 0, h = 0, last = performance.now(), raf = 0;
-  const fit = () => {
-    if (w === root.clientWidth && h === root.clientHeight) return; // re-allocating the canvas is costly
-    w = root.clientWidth; h = root.clientHeight;
-    renderer.setSize(w, h, false);
-    cam.right = w; cam.bottom = -h;
-    cam.updateProjectionMatrix();
-  };
-  fit();
-  new ResizeObserver(fit).observe(root);
+  let active = false, last = performance.now();
+  // The newest entry: when the page is busy, an "off screen" and an "on screen" entry can arrive together.
+  new IntersectionObserver((es) => { active = es.at(-1).isIntersecting; last = performance.now(); }).observe(root);
 
-  function frame(now) {
-    raf = requestAnimationFrame(frame);
-    if (document.documentElement.classList.contains('exploring')) return;
-    const dt = Math.min((now - last) / 1000, 0.05), t = now / 1000;
+  // Called by the scene each frame after it draws space; returns whether there is anything to draw.
+  const draw = () => {
+    if (!active) return false;
+    const now = performance.now(), dt = Math.min((now - last) / 1000, 0.05), t = now / 1000;
     last = now;
+    if (camera.right !== innerWidth || camera.bottom !== -innerHeight) { camera.right = innerWidth; camera.bottom = -innerHeight; camera.updateProjectionMatrix(); }
     const k = (rate) => 1 - Math.exp(-rate * dt);
-    const box = canvas.getBoundingClientRect();
     for (const o of orbs) {
       const b = o.ball.getBoundingClientRect();
       o.on += ((o.in ? 1 : 0) - o.on) * k(8);
@@ -139,18 +127,11 @@ export async function initOrbs(root) {
       o.ry += (o.tx * 0.55 - o.ry) * k(6);
       o.rx += (o.ty * 0.45 - o.rx) * k(6);
       const idle = REDUCED ? 0 : 1 - o.on;
-      o.mesh.position.set(b.left - box.left + b.width / 2, -(b.top - box.top + b.height / 2) + Math.sin(t * 1.1 + o.phase) * 4 * idle, 0);
+      o.mesh.position.set(b.left + b.width / 2, -(b.top + b.height / 2) + Math.sin(t * 1.1 + o.phase) * 4 * idle, 0);
       o.mesh.scale.setScalar((b.width / 2) * (1 + 0.08 * o.on));
       o.mesh.rotation.set(o.rx + Math.sin(t * 0.7 + o.phase) * 0.06 * idle, o.turn + o.ry + Math.sin(t * 0.5 + o.phase) * 0.18 * idle, 0);
     }
-    renderer.render(scene, cam);
-  }
-
-  // Draw only while the section is on screen.
-  new IntersectionObserver(([e]) => {
-    cancelAnimationFrame(raf);
-    if (e.isIntersecting) { last = performance.now(); raf = requestAnimationFrame(frame); }
-  }).observe(root);
-  frame(performance.now());
-  root.classList.add('gl');
+    return true;
+  };
+  universe.overlays.push({ scene, camera, draw });  root.classList.add('gl');
 }
