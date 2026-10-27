@@ -40,7 +40,8 @@ function canvasTexture(c) {
 }
 
 // A logo projected onto the sphere's front so it reads undistorted face-on, on its own edge colour.
-async function decal(src) {
+// R is the share of the sphere's radius the image covers: wide wordmarks need more than square logos.
+async function decal(src, R = 0.72) {
   const img = new Image();
   img.src = src;
   await img.decode();
@@ -57,7 +58,7 @@ async function decal(src) {
   g.fillStyle = `rgb(${bg.map(Math.round).join(',')})`;
   g.fillRect(0, 0, 1024, 512);
   // Only the front band can show the logo: u in [0, 0.5] (facing +Z) and rows where |Y| < R.
-  const R = 0.72, j0 = Math.floor((Math.acos(R) / Math.PI) * 512), j1 = Math.ceil(((Math.PI - Math.acos(R)) / Math.PI) * 512);
+  const j0 = Math.floor((Math.acos(R) / Math.PI) * 512), j1 = Math.ceil(((Math.PI - Math.acos(R)) / Math.PI) * 512);
   const out = g.getImageData(0, j0, 512, j1 - j0), d = out.data;
   for (let j = j0; j < j1; j++) {
     const th = (j / 512) * Math.PI, st = Math.sin(th), Y = Math.cos(th);
@@ -86,7 +87,7 @@ export async function initOrbs(root, universe) {
   const geo = new THREE.SphereGeometry(1, 96, 64);
 
   const links = [...root.querySelectorAll('.orb')];
-  const maps = await Promise.all(links.map((a) => (a.dataset.img ? decal(a.dataset.img) : texture(a.dataset.net, document.querySelector(`#i-${a.dataset.net} path`).getAttribute('d')))));
+  const maps = await Promise.all(links.map((a) => (a.dataset.img ? decal(a.dataset.img, +a.dataset.r || undefined) : texture(a.dataset.net, document.querySelector(`#i-${a.dataset.net} path`).getAttribute('d')))));
   const orbs = links.map((a, i) => {
     const mesh = new THREE.Mesh(geo, new THREE.MeshPhysicalMaterial({ map: maps[i], roughness: 0.35, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 0.8 }));
     scene.add(mesh);
