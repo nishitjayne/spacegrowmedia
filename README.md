@@ -3,7 +3,7 @@
 The marketing site for **SpaceGrow Media**, a Mumbai social media and growth agency, rebuilt around a real-scale 3D solar system.
 
 **Live (v2):** https://spacegrow-v2.vercel.app
-**Current production site (v1):** https://www.spacegrowmedia.com
+**Live site:** https://spacegrowmedia.com (Netlify, from `main`)
 
 ## What it does
 
@@ -55,7 +55,7 @@ Checked on 19 screen sizes, from a 320 px phone to a 2560 px desktop, portrait a
 Lighthouse SEO and Accessibility are both 100. The site has:
 
 - a title and description
-- a canonical URL (pointing to www.spacegrowmedia.com)
+- a canonical URL (pointing to spacegrowmedia.com)
 - Open Graph and Twitter cards
 - JSON-LD structured data (ProfessionalService, WebSite, FAQPage)
 - `robots.txt` and `sitemap.xml`

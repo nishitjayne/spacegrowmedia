@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.spacegrowmedia.com/sitemap.xml
+Sitemap: https://spacegrowmedia.com/sitemap.xml
