@@ -331,10 +331,10 @@ function starburstTexture(size = 512) {
     g.save(); g.rotate((i / 12) * Math.PI * 2 + 0.26); g.fillStyle = sp;
     g.beginPath(); g.moveTo(0, -w); g.lineTo(len, 0); g.lineTo(0, w); g.closePath(); g.fill(); g.restore();
   }
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
+  return canvasTexture(c);
 }
+
+const canvasTexture = (c) => Object.assign(new THREE.CanvasTexture(c), { colorSpace: THREE.SRGBColorSpace });
 
 function glowTexture(stops, size = 256) {
   const c = document.createElement('canvas');
@@ -344,9 +344,7 @@ function glowTexture(stops, size = 256) {
   stops.forEach(([o, col]) => grad.addColorStop(o, col));
   g.fillStyle = grad;
   g.fillRect(0, 0, size, size);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
+  return canvasTexture(c);
 }
 
 // Compressed distance: keeps the true order and spacing feel, fits Neptune in view.
@@ -397,19 +395,16 @@ function planetPos(el, days) {
 }
 
 // IAU pole (RA, Dec) in equatorial coordinates, rotated into the ecliptic frame.
+const eqToThree = (v) => ecl(v.x, v.y * Math.cos(OBLIQUITY) + v.z * Math.sin(OBLIQUITY), -v.y * Math.sin(OBLIQUITY) + v.z * Math.cos(OBLIQUITY));
 function poleVector(ra, dec) {
   const r = ra * DEG, d = dec * DEG;
-  const xq = Math.cos(d) * Math.cos(r), yq = Math.cos(d) * Math.sin(r), zq = Math.sin(d);
-  return ecl(xq, yq * Math.cos(OBLIQUITY) + zq * Math.sin(OBLIQUITY), -yq * Math.sin(OBLIQUITY) + zq * Math.cos(OBLIQUITY)).normalize();
+  return eqToThree(new THREE.Vector3(Math.cos(d) * Math.cos(r), Math.cos(d) * Math.sin(r), Math.sin(d))).normalize();
 }
-const eqToThree = (v) => ecl(v.x, v.y * Math.cos(OBLIQUITY) + v.z * Math.sin(OBLIQUITY), -v.y * Math.sin(OBLIQUITY) + v.z * Math.cos(OBLIQUITY));
 
 /* ───────── scene ───────── */
 class Universe {
   constructor(canvas) {
-    this.canvas = canvas;
     this.isMobile = Math.min(window.innerWidth, window.innerHeight) < 700;
-    this.earthSpin = null;
     this.view = { yaw: 0, pitch: 0 };
     this.tmp = { pos: new THREE.Vector3(), look: new THREE.Vector3(), off: new THREE.Vector3(), side: new THREE.Vector3(), q: new THREE.Vector3() };
     this.pickables = [];
@@ -449,15 +444,22 @@ class Universe {
     this.bitmaps = typeof createImageBitmap === 'function' && !/Firefox|^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     this.loader = this.bitmaps ? new THREE.ImageBitmapLoader(manager).setOptions({ imageOrientation: 'flipY', premultiplyAlpha: 'none' }) : new THREE.TextureLoader(manager);
 
-    this.buildSky();
+    const sky = this.buildSky();
     this.buildStars();
     this.scene.add(new THREE.PointLight(0xfff4e8, 3.4, 0, 0), new THREE.AmbientLight(0x8899ff, 0.04));
     this.buildSun();
     this.buildBelt();
     // The page's glossy spheres reflect a soft studio room. It is baked now, in its own task while the
     // textures download, because baking it after the intro froze a frame just as people start to scroll.
-    if (!this.lite) setTimeout(() => { const pm = new THREE.PMREMGenerator(r); this.env = pm.fromScene(new RoomEnvironment(), 0.04).texture; pm.dispose(); });
-    this.ready =Promise.all([this.buildEarth(), ...PLANETS.map((p) => this.buildPlanet(p))]).then(() => {
+    // Its materials compile in the background first (into an off-screen target, as the bake draws them).
+    if (!this.lite) {
+      const room = new RoomEnvironment(), rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType });
+      r.setRenderTarget(rt);
+      const compiled = r.compileAsync(room, new THREE.PerspectiveCamera());
+      r.setRenderTarget(null);
+      compiled.then(() => { const pm = new THREE.PMREMGenerator(r); this.env = pm.fromScene(room, 0.04).texture; pm.dispose(); rt.dispose(); });
+    }
+    this.ready = Promise.all([sky, this.buildEarth(), ...PLANETS.map((p) => this.buildPlanet(p))]).then(() => {
       this.buildPath();
       this.measure();
       // Compile every program now, hidden bodies included (the site view hides most of them), so nothing
@@ -529,9 +531,17 @@ class Universe {
     const rt = new THREE.WebGLCubeRenderTarget(this.isMobile ? 768 : 1536, { type: THREE.HalfFloatType });
     const skyScene = new THREE.Scene();
     skyScene.add(new THREE.Mesh(new THREE.SphereGeometry(10, 64, 32), new THREE.ShaderMaterial({ ...SKY, side: THREE.BackSide, depthWrite: false, uniforms: { uSun: { value: SUN_DIR } } })));
-    new THREE.CubeCamera(0.1, 100, rt).update(this.renderer, skyScene);
-    this.scene.background = rt.texture;
-    skyScene.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });
+    const cam = new THREE.CubeCamera(0.1, 100, rt), r = this.renderer;
+    // Compile in the background first (into the cube target, as it will draw), then bake: drawing it at once
+    // compiled the sky shader on the main thread during the opening.
+    r.setRenderTarget(rt);
+    const compiled = r.compileAsync(skyScene, cam.children[0]);
+    r.setRenderTarget(null);
+    return compiled.then(() => {
+      cam.update(r, skyScene);
+      this.scene.background = rt.texture;
+      skyScene.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });
+    });
   }
 
   buildStars() {
@@ -632,6 +642,7 @@ class Universe {
     const greenwich = eqToThree(new THREE.Vector3(Math.cos(gmst), Math.sin(gmst), 0)).normalize();
     const east = new THREE.Vector3().crossVectors(north, greenwich);
     this.earthBody.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(greenwich, north, east.negate()));
+    this.earthBody.userData.pole = north; // a drag spins Earth on this axis only, like the real planet
     this.earthBody.add(new THREE.Mesh(new THREE.SphereGeometry(EARTH_R * 1.008, seg, seg / 2), new THREE.ShaderMaterial({ ...CLOUDS, uniforms, transparent: true, depthWrite: false })));
     const atmo = new THREE.Mesh(new THREE.SphereGeometry(EARTH_R * 1.018, 128, 64), new THREE.ShaderMaterial({
       ...ATMOSPHERE, side: THREE.BackSide, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
@@ -823,8 +834,7 @@ class Universe {
   }
 
   measure() {
-    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    this.max = max;
+    const max = this.max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
     const marks = [...document.querySelectorAll('[data-scene]')].sort((a, b) => a.dataset.scene - b.dataset.scene);
     if (marks.length === 7) this.stops = marks.map((m, i) => (i === 0 ? 0 : i === 6 ? 1 : Math.min(1, Math.max(0, (m.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.15) / max))));
   }
@@ -841,7 +851,7 @@ class Universe {
   }
 
   bind() {
-    this.ro = new ResizeObserver(() => {
+    new ResizeObserver(() => {
       const w = window.innerWidth, h = window.innerHeight;
       this.camera.aspect = w / h;
       this.camera.fov = this.baseFov = this.fov();
@@ -849,10 +859,8 @@ class Universe {
       this.renderer.setSize(w, h, false);
       if (this.posCurve) this.buildPath();
       this.measure();
-    });
-    this.ro.observe(document.documentElement);
-    this.onVis = () => { this.renderer.setAnimationLoop(document.hidden ? null : () => this.frame()); this.clock.getDelta(); };
-    document.addEventListener('visibilitychange', this.onVis);
+    }).observe(document.documentElement);
+    document.addEventListener('visibilitychange', () => { this.renderer.setAnimationLoop(document.hidden ? null : () => this.frame()); this.clock.getDelta(); });
   }
 
   frame() {
@@ -891,7 +899,6 @@ class Universe {
       const before = this.tmp.q.copy(cam.position);
       cam.position.lerp(targetPos, REDUCED ? 1 : k(2.6));
       this.look.lerp(targetLook, REDUCED ? 1 : k(2.8));
-      // Cursor parallax, scaled to how close we are to what we're looking at.
       cam.lookAt(this.look);
       travelSpeed = before.distanceTo(cam.position) / Math.max(dt, 1e-3);
       if (Math.abs(this.vel) > 60 && !this.grabbed) { const e = Math.exp(-4 * dt); this.view.yaw *= e; this.view.pitch *= e; }
@@ -920,20 +927,14 @@ class Universe {
 
     if (this.earthBody) {
       this.earthUniforms.uSun.value.copy(this.earth.position).negate().normalize();
-      if (this.earthSpin && this.grabbed !== this.earthBody) {
-        const e = this.earthSpin;
-        this.earthBody.rotateY(e.v * dt); // its own axis: local Y is true north
-        e.v *= Math.exp(-1.8 * dt);
-        if (Math.abs(e.v) < 1e-3) this.earthSpin = null;
-      }
       if (!REDUCED) this.earthBody.rotateY(dt * 0.004);
       this.earthUniforms.uCloudShift.value = (this.time * 0.0016) % 1;
       this.earthUniforms.uTime.value = this.time;
     }
     for (const p of this.pickables) {
-      if (p === this.earthBody || p.userData.baseSpin === undefined) continue;
-      if (!REDUCED) p.rotation.y += dt * p.userData.baseSpin;
-      if (p.userData.spin) { p.rotateOnAxis(p.userData.spinAxis, p.userData.spin * dt); p.userData.spin *= Math.exp(-1.6 * dt); }
+      if (!REDUCED && p.userData.baseSpin) p.rotation.y += dt * p.userData.baseSpin;
+      // Coasting after a drag (not while still held, where the drag itself turns it).
+      if (p.userData.spin && p !== this.grabbed) { p.rotateOnAxis(p.userData.spinAxis, p.userData.spin * dt); p.userData.spin *= Math.exp(-1.6 * dt); }
     }
 
     // Site mode shows only the body being visited and the next one; explore shows the whole system.
@@ -1037,20 +1038,13 @@ class Universe {
   }
 
   // Press: grab a body to spin it on its own axis, or empty space to look around.
-  grab(x, y) { this.grabbed = this.pick(x, y); if (this.grabbed?.userData.name === 'Sun') this.grabbed = null; return this.grabbed ? 'planet' : 'look'; }
+  grab(x, y) { const g = this.pick(x, y); this.grabbed = g?.userData.name === 'Sun' ? null : g; }
 
   drag(dx, dy, dt) {
     const g = this.grabbed, s = Math.max(dt, 0.008);
     const camRight = this.tmp.side.set(1, 0, 0).applyQuaternion(this.camera.quaternion);
-    if (g === this.earthBody) {
-      // Earth turns only on its own axis, like the real planet: the facing side follows the cursor, it never tumbles.
-      const north = new THREE.Vector3(0, 1, 0).applyQuaternion(g.getWorldQuaternion(this.tmpQ));
-      const toCam = new THREE.Vector3().subVectors(this.camera.position, g.getWorldPosition(new THREE.Vector3())).normalize();
-      const a = dx * 0.006 * (Math.sign(new THREE.Vector3().crossVectors(north, toCam).dot(camRight)) || 1);
-      g.rotateY(a);
-      this.earthSpin = { v: THREE.MathUtils.clamp(a / s, -4, 4) };
-    } else if (g) {
-      // Planets turn only on their own pole, in whichever direction makes the facing side follow the cursor.
+    if (g) {
+      // Bodies turn only on their own pole (Earth included, never tumbling), so the facing side follows the cursor.
       const pole = this.tmp.q.copy(g.userData.pole);
       const toCam = new THREE.Vector3().subVectors(this.camera.position, g.getWorldPosition(new THREE.Vector3())).normalize();
       const sign = Math.sign(new THREE.Vector3().crossVectors(pole, toCam).dot(camRight)) || 1;
@@ -1083,13 +1077,11 @@ class Universe {
   // Click a body: travel there along a gentle arc.
   travel(x, y) { const obj = this.pick(x, y); return obj ? this.travelTo(obj) : null; }
 
-  byName(name) { return this.pickables.find((p) => p.userData.name === name); }
-
   // Rise above the ecliptic so the whole system, every orbit, is in view.
   overview() { return this.flyTo(new THREE.Vector3(0, 5600, 4200), new THREE.Vector3(0, 0, 0), 'Solar system'); }
 
   travelTo(obj) {
-    if (typeof obj === 'string') obj = this.byName(obj);
+    if (typeof obj === 'string') obj = this.pickables.find((p) => p.userData.name === obj);
     if (!obj) return null;
     obj.userData.root.visible = true;
     const target = obj.getWorldPosition(new THREE.Vector3());
@@ -1099,7 +1091,7 @@ class Universe {
   }
 
   // Real distance from the Sun: undo the display compression (d = 700 * a^0.6).
-  telemetry() { const d = this.camera.position.length(); return { au: Math.pow(d / 700, 1 / 0.6), moving: !!this.flight || this.flyVel.length() > 5 }; }
+  telemetry() { return { au: Math.pow(this.camera.position.length() / 700, 1 / 0.6) }; }
 
   /*
     Flight model (after van Wijk & Nuij, "Smooth and efficient zooming and panning"):
@@ -1163,7 +1155,6 @@ class Universe {
 
   /* ───────── labels (DOM, positioned from 3D) ───────── */
   label(obj, text, local, pin) {
-    if (!this.labelRoot) return;
     const el = document.createElement('div');
     el.className = 'label3d' + (pin ? ' pin' : '');
     el.textContent = text;
@@ -1200,10 +1191,10 @@ class Universe {
       L.want = show;
       L.x = (p.x + 1) / 2 * w; L.y = (1 - p.y) / 2 * h;
     }
-    // Occlusion: a label whose body sits behind a nearer body's disc is hidden.
+    // Occlusion: a label whose body sits behind a nearer body's disc is hidden (explore mode only has such labels).
     const fovK = (h / 2) / Math.tan((cam.fov * Math.PI) / 360);
     const discs = [];
-    for (const o of this.pickables) {
+    if (exploreReady) for (const o of this.pickables) {
       if (o.userData.root?.visible === false) continue;
       const c = o.getWorldPosition(new THREE.Vector3()), dist = c.distanceTo(cam.position);
       const sp = c.clone().project(cam);
@@ -1231,33 +1222,13 @@ class Universe {
       L.el.style.transform = `translate3d(${lx.toFixed(1)}px, ${L.y.toFixed(1)}px, 0)`;
     }
   }
-
-  dispose() {
-    this.renderer.setAnimationLoop(null);
-    this.ro?.disconnect();
-    document.removeEventListener('visibilitychange', this.onVis);
-    this.scene.traverse((o) => {
-      o.geometry?.dispose();
-      [].concat(o.material || []).forEach((m) => {
-        Object.values(m.uniforms || {}).forEach((u) => u.value?.isTexture && u.value.dispose());
-        m.map?.dispose(); m.dispose();
-      });
-    });
-    this.scene.background?.dispose?.();
-    this.env?.dispose();
-    this.renderer.dispose();
-  }
 }
 
-let instance = null;
-
+// Called once (app.js keeps the promise).
 export function initScene() {
-  const canvas = document.getElementById('space-canvas');
-  if (!canvas || instance) return Promise.resolve(null);
   try {
-    instance = new Universe(canvas);
-    window.addEventListener('pagehide', () => { instance?.dispose(); instance = null; });
-    return instance.ready.then(() => instance);
+    const u = new Universe(document.getElementById('space-canvas'));
+    return u.ready.then(() => u);
   } catch (e) {
     console.warn('WebGL scene failed, keeping the CSS sky.', e);
     return Promise.resolve(null);

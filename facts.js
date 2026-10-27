@@ -1,7 +1,7 @@
 /* Did-you-know facts. A hand-checked set per body (NASA, ESA and IAU figures), then live sentences
    from the Wikipedia article for that body, so the card keeps going without repeating. */
 
-export const FACTS = {
+const FACTS = {
   'Solar system': [
     'The solar system formed about 4.6 billion years ago from a collapsing cloud of gas and dust.',
     'The Sun carries the whole solar system around the Milky Way roughly once every 230 million years.',
@@ -158,7 +158,7 @@ export const FACTS = {
   ],
 };
 
-const WIKI = { 'Solar system': 'Solar System', Sun: 'Sun', Mercury: 'Mercury (planet)', Venus: 'Venus', Earth: 'Earth', Moon: 'Moon', Mars: 'Mars', Jupiter: 'Jupiter', Saturn: 'Saturn', Uranus: 'Uranus', Neptune: 'Neptune' };
+const WIKI = { 'Solar system': 'Solar System', Mercury: 'Mercury (planet)' }; // article titles that differ from the name
 const wikiCache = {};
 
 // Sentences from the Wikipedia article that stand on their own: right length, no references or formulas.
@@ -166,7 +166,7 @@ async function wikiFacts(name) {
   if (wikiCache[name]) return wikiCache[name];
   wikiCache[name] = (async () => {
     try {
-      const url = 'https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&exsectionformat=wiki&format=json&origin=*&titles=' + encodeURIComponent(WIKI[name]);
+      const url = 'https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&exsectionformat=wiki&format=json&origin=*&titles=' + encodeURIComponent(WIKI[name] || name);
       const res = await fetch(url);
       const page = Object.values((await res.json()).query.pages)[0];
       return (page.extract || '')
